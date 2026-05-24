@@ -51,7 +51,7 @@ Each module exports a factory function (`createWebSocketModule`, `createIntegrat
 
 ## Stack
 
-- **Node.js 22** + **TypeScript 6** — `tsconfig.json` targets ES2022/CommonJS
+- **Node.js 24** + **TypeScript 6** — `tsconfig.json` targets ES2022/CommonJS
 - **Express 5** — HTTP layer for Integration Hub webhooks
 - **Socket.io 4** — WebSocket module
 - **BullMQ 5** + **node-cron** — Workflow Engine
