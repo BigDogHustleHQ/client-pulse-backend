@@ -101,6 +101,14 @@ describe('PostgresClient', () => {
     await expect(database.findTenantById('missing')).resolves.toBeNull();
   });
 
+  it('rethrows non-no-rows errors when finding a tenant', async () => {
+    const error = { code: 'PGRST500', message: 'boom' };
+    single.mockResolvedValue({ data: null, error });
+    const database = new PostgresClient({ client });
+
+    await expect(database.findTenantById('tenant-1')).rejects.toBe(error);
+  });
+
   it('updates a tenant and returns the updated row', async () => {
     const database = new PostgresClient({ client });
 
@@ -126,6 +134,16 @@ describe('PostgresClient', () => {
     ).resolves.toBeNull();
   });
 
+  it('rethrows non-no-rows errors when updating a tenant', async () => {
+    const error = { code: 'PGRST500', message: 'boom' };
+    single.mockResolvedValue({ data: null, error });
+    const database = new PostgresClient({ client });
+
+    await expect(
+      database.updateTenant('tenant-1', { name: 'New Name' }),
+    ).rejects.toBe(error);
+  });
+
   it('inserts audit log rows', async () => {
     const database = new PostgresClient({ client });
     const metadata = { name: 'New Name' };
@@ -138,5 +156,15 @@ describe('PostgresClient', () => {
       action: 'tenant.updated',
       metadata,
     });
+  });
+
+  it('throws when an audit log insert fails', async () => {
+    const error = new Error('insert failed');
+    insert.mockResolvedValue({ data: null, error });
+    const database = new PostgresClient({ client });
+
+    await expect(
+      database.insertAuditLog('tenant-1', 'tenant.updated', {}),
+    ).rejects.toThrow(error);
   });
 });
