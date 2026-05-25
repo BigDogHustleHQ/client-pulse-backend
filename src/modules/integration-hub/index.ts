@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createModuleLogger } from '../logger';
+import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('integration-hub');
 

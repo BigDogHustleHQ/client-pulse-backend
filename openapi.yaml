@@ -22,8 +22,8 @@ servers:
 tags:
   - name: Integration Hub
     description: Incoming webhooks and OAuth flows for third-party integrations
-  - name: Platform
-    description: PostgreSQL and Supabase Storage platform dependency checks
+  - name: Dependency Health
+    description: PostgreSQL and Supabase Storage dependency checks
 
 paths:
   /integrations/health:
@@ -77,10 +77,10 @@ paths:
         '200':
           description: Webhook acknowledged
 
-  /platform/database/health:
+  /dependencies/database/health:
     get:
       operationId: getDatabaseHealth
-      tags: [Platform]
+      tags: [Dependency Health]
       summary: Database Health Check
       description: Verifies the Supabase PostgreSQL connection with a lightweight `select now()` query.
       responses:
@@ -102,10 +102,10 @@ paths:
                 status: ok
                 now: '2026-05-24T12:00:00.000Z'
 
-  /platform/storage/health:
+  /dependencies/storage/health:
     get:
       operationId: getStorageHealth
-      tags: [Platform]
+      tags: [Dependency Health]
       summary: Storage Health Check
       description: Verifies the Supabase Storage service role credentials by listing available buckets.
       responses:

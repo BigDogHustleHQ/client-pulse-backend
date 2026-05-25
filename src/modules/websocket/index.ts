@@ -1,6 +1,6 @@
 import { Server as HttpServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
-import { createModuleLogger } from '../logger';
+import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('websocket');
 

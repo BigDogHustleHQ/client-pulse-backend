@@ -1,6 +1,6 @@
 import { Queue, Worker } from 'bullmq';
 import cron, { ScheduledTask } from 'node-cron';
-import { createModuleLogger } from '../logger';
+import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('workflow-engine');
 

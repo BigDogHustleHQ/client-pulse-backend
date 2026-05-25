@@ -1,5 +1,5 @@
 import { createApp } from './server';
-import { createModuleLogger } from './modules/logger';
+import { createModuleLogger } from './lib/logger';
 
 const log = createModuleLogger('server');
 const PORT = process.env.PORT ?? 3001;

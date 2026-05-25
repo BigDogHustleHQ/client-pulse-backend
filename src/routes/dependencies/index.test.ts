@@ -1,10 +1,10 @@
 import express from 'express';
 import request from 'supertest';
-import { createPlatformRouter } from './index';
+import { createDependencyHealthRouter } from './index';
 
-describe('Platform router', () => {
-  it('creates a router with default platform clients', () => {
-    expect(createPlatformRouter()).toBeDefined();
+describe('Dependency health router', () => {
+  it('creates a router with default dependency clients', () => {
+    expect(createDependencyHealthRouter()).toBeDefined();
   });
 
   it('GET /database/health returns PostgreSQL health', async () => {
@@ -16,7 +16,7 @@ describe('Platform router', () => {
       }),
     };
 
-    app.use('/', createPlatformRouter({ postgres }));
+    app.use('/', createDependencyHealthRouter({ postgres }));
 
     const res = await request(app).get('/database/health');
 
@@ -36,7 +36,7 @@ describe('Platform router', () => {
       }),
     };
 
-    app.use('/', createPlatformRouter({ blobStorage }));
+    app.use('/', createDependencyHealthRouter({ blobStorage }));
 
     const res = await request(app).get('/storage/health');
 
@@ -53,7 +53,7 @@ describe('Platform router', () => {
       health: jest.fn().mockRejectedValue(new Error('database unavailable')),
     };
 
-    app.use('/', createPlatformRouter({ postgres }));
+    app.use('/', createDependencyHealthRouter({ postgres }));
 
     const res = await request(app).get('/database/health');
 
@@ -66,7 +66,7 @@ describe('Platform router', () => {
       health: jest.fn().mockRejectedValue(new Error('storage unavailable')),
     };
 
-    app.use('/', createPlatformRouter({ blobStorage }));
+    app.use('/', createDependencyHealthRouter({ blobStorage }));
 
     const res = await request(app).get('/storage/health');
 

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { PostgresClient } from '../data/postgres';
-import { BlobStorageClient } from '../storage/blob-storage';
-import type { PlatformRouterOptions } from './types';
+import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
+import { PostgresClient } from '../../services/postgres/postgres';
+import type { DependencyHealthRouterOptions } from './types';
 
-export function createPlatformRouter(
-  options: PlatformRouterOptions = {},
+export function createDependencyHealthRouter(
+  options: DependencyHealthRouterOptions = {},
 ): Router {
   const router = Router();
 
