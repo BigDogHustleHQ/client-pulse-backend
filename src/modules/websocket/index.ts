@@ -4,7 +4,7 @@ import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('websocket');
 
-export function createWebSocketModule(httpServer: HttpServer): SocketServer {
+export const createWebSocketModule = (httpServer: HttpServer): SocketServer => {
   const io = new SocketServer(httpServer, {
     cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:3000' },
   });
@@ -19,4 +19,4 @@ export function createWebSocketModule(httpServer: HttpServer): SocketServer {
   });
 
   return io;
-}
+};

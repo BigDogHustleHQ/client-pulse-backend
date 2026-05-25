@@ -5,7 +5,7 @@ import { createIntegrationHubRouter } from './modules/integration-hub';
 import { createDependencyHealthRouter } from './routes/dependencies';
 import { registerCronJobs } from './modules/workflow-engine';
 
-export function createApp() {
+export const createApp = () => {
   const app = express();
 
   app.use(express.json());
@@ -18,4 +18,4 @@ export function createApp() {
   registerCronJobs();
 
   return httpServer;
-}
+};

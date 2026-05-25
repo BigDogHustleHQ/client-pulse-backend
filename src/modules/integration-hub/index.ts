@@ -3,7 +3,7 @@ import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('integration-hub');
 
-export function createIntegrationHubRouter(): Router {
+export const createIntegrationHubRouter = (): Router => {
   const router = Router();
 
   router.get('/health', (_req, res) => {
@@ -18,4 +18,4 @@ export function createIntegrationHubRouter(): Router {
   });
 
   return router;
-}
+};

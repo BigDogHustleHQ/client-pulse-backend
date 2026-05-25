@@ -22,6 +22,6 @@ export const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-export function createModuleLogger(module: string): winston.Logger {
+export const createModuleLogger = (module: string): winston.Logger => {
   return logger.child({ module });
-}
+};

@@ -3,9 +3,9 @@ import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { PostgresClient } from '../../services/postgres/postgres';
 import type { DependencyHealthRouterOptions } from './types';
 
-export function createDependencyHealthRouter(
+export const createDependencyHealthRouter = (
   options: DependencyHealthRouterOptions = {},
-): Router {
+): Router => {
   const router = Router();
 
   router.get('/database/health', async (_req, res, next) => {
@@ -29,4 +29,4 @@ export function createDependencyHealthRouter(
   });
 
   return router;
-}
+};

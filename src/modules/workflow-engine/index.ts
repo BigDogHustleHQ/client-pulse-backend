@@ -20,7 +20,7 @@ export const workflowWorker = new Worker(
   { connection },
 );
 
-export function registerCronJobs(): ScheduledTask[] {
+export const registerCronJobs = (): ScheduledTask[] => {
   const tick = cron.schedule(
     '* * * * *',
     /* istanbul ignore next */ () => {
@@ -28,4 +28,4 @@ export function registerCronJobs(): ScheduledTask[] {
     },
   );
   return [tick];
-}
+};

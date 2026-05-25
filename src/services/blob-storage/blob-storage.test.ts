@@ -1,6 +1,6 @@
 import { BlobStorageClient } from './blob-storage';
 
-function createStorageClient() {
+const createStorageClient = () => {
   const upload = jest.fn();
   const from = jest.fn().mockReturnValue({ upload });
   const listBuckets = jest.fn();
@@ -16,7 +16,7 @@ function createStorageClient() {
     listBuckets,
     upload,
   };
-}
+};
 
 describe('BlobStorageClient', () => {
   it('creates a Supabase client from credentials', () => {

@@ -103,7 +103,7 @@ for (const [path, pathItem] of Object.entries(spec.paths ?? {})) {
 
 // Remove .bru files that no longer correspond to a spec entry
 // (skip environments/ and collection.bru)
-function pruneStale(dir) {
+const pruneStale = (dir) => {
   if (!existsSync(dir)) return;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
@@ -114,7 +114,7 @@ function pruneStale(dir) {
       console.log(`  ✗ removed ${relative(root, full)}`);
     }
   }
-}
+};
 
 pruneStale(brunoDir);
 console.log('[sync-api-docs] Bruno collection synced from openapi.yaml');
