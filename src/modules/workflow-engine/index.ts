@@ -1,5 +1,8 @@
 import { Queue, Worker } from 'bullmq';
 import cron, { ScheduledTask } from 'node-cron';
+import { createModuleLogger } from '../logger';
+
+const log = createModuleLogger('workflow-engine');
 
 const connection = {
   host: process.env.REDIS_HOST ?? 'localhost',
@@ -12,14 +15,14 @@ export const workflowWorker = new Worker(
   'workflows',
   /* istanbul ignore next */
   async (job) => {
-    console.log(`[workflow-engine] processing job ${job.id}: ${job.name}`);
+    log.info(`processing job ${job.id}: ${job.name}`);
   },
   { connection },
 );
 
 export function registerCronJobs(): ScheduledTask[] {
   const tick = cron.schedule('* * * * *', /* istanbul ignore next */ () => {
-    console.log('[workflow-engine] cron tick');
+    log.debug('cron tick');
   });
   return [tick];
 }
