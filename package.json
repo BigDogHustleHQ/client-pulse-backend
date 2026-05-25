@@ -21,9 +21,11 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
     "bullmq": "^5.77.1",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
+    "pg": "^8.21.0",
     "socket.io": "^4.8.3",
     "winston": "^3.19.0"
   },
@@ -33,17 +35,18 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.9.1",
     "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
     "jest": "^30.4.2",
+    "js-yaml": "^4.1.0",
     "prettier": "^3.8.3",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",
-    "js-yaml": "^4.1.0",
     "typescript-eslint": "^8.59.4"
   }
 }

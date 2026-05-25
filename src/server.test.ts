@@ -15,6 +15,10 @@ jest.mock('./modules/integration-hub', () => ({
   createIntegrationHubRouter: jest.fn().mockReturnValue(jest.fn()),
 }));
 
+jest.mock('./modules/platform', () => ({
+  createPlatformRouter: jest.fn().mockReturnValue(jest.fn()),
+}));
+
 describe('server', () => {
   it('creates an http server', () => {
     const server = createApp();

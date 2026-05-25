@@ -1,0 +1,24 @@
+meta {
+  name: Database Health Check
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/platform/database/health
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq ok
+}
+
+docs {
+  Verifies the Supabase PostgreSQL connection with a lightweight `select now()` query.
+}

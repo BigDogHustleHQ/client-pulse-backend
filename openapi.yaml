@@ -18,6 +18,8 @@ servers:
 tags:
   - name: Integration Hub
     description: Incoming webhooks and OAuth flows for third-party integrations
+  - name: Platform
+    description: PostgreSQL and Supabase Storage platform dependency checks
 
 paths:
   /integrations/health:
@@ -70,3 +72,56 @@ paths:
       responses:
         '200':
           description: Webhook acknowledged
+
+  /platform/database/health:
+    get:
+      operationId: getDatabaseHealth
+      tags: [Platform]
+      summary: Database Health Check
+      description: Verifies the Supabase PostgreSQL connection with a lightweight `select now()` query.
+      responses:
+        '200':
+          description: Database connection is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, now]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  now:
+                    type: string
+                    format: date-time
+              example:
+                status: ok
+                now: '2026-05-24T12:00:00.000Z'
+
+  /platform/storage/health:
+    get:
+      operationId: getStorageHealth
+      tags: [Platform]
+      summary: Storage Health Check
+      description: Verifies the Supabase Storage service role credentials by listing available buckets.
+      responses:
+        '200':
+          description: Blob storage connection is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, buckets]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  buckets:
+                    type: array
+                    items:
+                      type: string
+              example:
+                status: ok
+                buckets:
+                  - media-uploads
+                  - generated-sites
