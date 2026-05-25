@@ -1,0 +1,72 @@
+openapi: 3.0.3
+
+info:
+  title: ClientPulse Backend
+  description: >
+    Single Railway service for ClientPulse — WebSocket real-time push,
+    BullMQ workflow engine, and integration hub for third-party webhooks/OAuth.
+  version: 0.1.0
+  contact:
+    email: jabreenicholas@gmail.com
+
+servers:
+  - url: http://localhost:3001
+    description: Local development
+  - url: https://clientpulse-backend.up.railway.app
+    description: Production (Railway)
+
+tags:
+  - name: Integration Hub
+    description: Incoming webhooks and OAuth flows for third-party integrations
+
+paths:
+  /integrations/health:
+    get:
+      operationId: getIntegrationHealth
+      tags: [Integration Hub]
+      summary: Health Check
+      description: Returns 200 with `{"status":"ok"}` when the integration hub is healthy.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+              example:
+                status: ok
+
+  /integrations/webhooks/{provider}:
+    post:
+      operationId: receiveWebhook
+      tags: [Integration Hub]
+      summary: Webhook Receiver
+      description: >
+        Accepts inbound webhook payloads from third-party providers.
+        Each `provider` slug maps to an integration adapter registered in the hub.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: Integration provider slug (e.g. `stripe`, `twilio`)
+          schema:
+            type: string
+          example: stripe
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Provider-specific webhook payload
+            example:
+              event: customer.created
+              data:
+                id: cus_abc123
+      responses:
+        '200':
+          description: Webhook acknowledged
