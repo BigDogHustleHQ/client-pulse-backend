@@ -18,6 +18,9 @@ export class TenantsController {
 
   // Look up a single business account (tenant) — the customer organization
   // that owns a ClientPulse dashboard. Used to load account details/settings.
+  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
+  // which bypasses RLS — any caller can read any tenant. Add tenant auth before
+  // this is internet-reachable.
   @Get(':id')
   async findById(@Param('id') id: string): Promise<Tenant> {
     const tenant = await this.tenants.findById(id);
@@ -30,6 +33,9 @@ export class TenantsController {
   // Update a business account's profile: display name, URL slug, or lifecycle
   // status (active/suspended — e.g. offboarding a churned or non-paying
   // customer). Every change is recorded to the audit log for compliance.
+  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
+  // which bypasses RLS — any caller can mutate any tenant. Add tenant auth
+  // before this is internet-reachable.
   @Patch(':id')
   async update(
     @Param('id') id: string,

@@ -10,6 +10,18 @@ import {
   type PostgresHealthCheck,
 } from './types';
 
+// Lazily constructed once and reused — building a client reads env and opens a
+// Supabase connection, so we don't want a fresh one per health probe.
+let postgresClient: PostgresClient | undefined;
+/* istanbul ignore next */
+const getPostgresClient = (): PostgresClient =>
+  (postgresClient ??= new PostgresClient());
+
+let blobStorageClient: BlobStorageClient | undefined;
+/* istanbul ignore next */
+const getBlobStorageClient = (): BlobStorageClient =>
+  (blobStorageClient ??= new BlobStorageClient());
+
 @Controller('dependencies')
 export class DependenciesController {
   constructor(
@@ -40,14 +52,14 @@ export class DependenciesController {
       provide: POSTGRES_HEALTH,
       useValue: {
         health: /* istanbul ignore next */ (): Promise<DatabaseHealth> =>
-          new PostgresClient().health(),
+          getPostgresClient().health(),
       },
     },
     {
       provide: BLOB_STORAGE_HEALTH,
       useValue: {
         health: /* istanbul ignore next */ (): Promise<BlobStorageHealth> =>
-          new BlobStorageClient().health(),
+          getBlobStorageClient().health(),
       },
     },
   ],
