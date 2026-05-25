@@ -1,7 +1,12 @@
-import type { BlobStorageClient } from '../../services/blob-storage/blob-storage';
-import type { PostgresClient } from '../../services/postgres/postgres';
+import type { DatabaseHealth } from '../../services/postgres/types';
+import type { BlobStorageHealth } from '../../services/blob-storage/types';
 
-export interface DependencyHealthRouterOptions {
-  postgres?: Pick<PostgresClient, 'health'>;
-  blobStorage?: Pick<BlobStorageClient, 'health'>;
+export interface DependencyHealthCheck<T> {
+  health(): Promise<T>;
 }
+
+export const POSTGRES_HEALTH = 'POSTGRES_HEALTH';
+export const BLOB_STORAGE_HEALTH = 'BLOB_STORAGE_HEALTH';
+
+export type PostgresHealthCheck = DependencyHealthCheck<DatabaseHealth>;
+export type BlobStorageHealthCheck = DependencyHealthCheck<BlobStorageHealth>;

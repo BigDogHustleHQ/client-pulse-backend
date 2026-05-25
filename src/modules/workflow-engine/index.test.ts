@@ -1,4 +1,5 @@
-import { registerCronJobs } from './index';
+import cron from 'node-cron';
+import { WorkflowEngineService } from './index';
 
 jest.mock('bullmq', () => ({
   Queue: jest.fn().mockImplementation(() => ({
@@ -18,24 +19,32 @@ jest.mock('node-cron', () => ({
   schedule: jest.fn().mockReturnValue({ stop: jest.fn() }),
 }));
 
-describe('Workflow Engine module', () => {
-  it('registers cron jobs without throwing', () => {
-    expect(() => registerCronJobs()).not.toThrow();
+describe('WorkflowEngineService', () => {
+  it('creates a workflow queue named workflows', () => {
+    const service = new WorkflowEngineService();
+    expect(service.queue).toBeDefined();
+    expect(service.queue.name).toBe('workflows');
   });
 
-  it('returns scheduled tasks', () => {
-    const tasks = registerCronJobs();
-    expect(tasks).toHaveLength(1);
+  it('creates a workflow worker', () => {
+    const service = new WorkflowEngineService();
+    expect(service.worker).toBeDefined();
   });
 
-  it('exports a workflow queue', async () => {
-    const { workflowQueue } = await import('./index');
-    expect(workflowQueue).toBeDefined();
-    expect(workflowQueue.name).toBe('workflows');
+  it('schedules a cron tick on init', () => {
+    const service = new WorkflowEngineService();
+    service.onModuleInit();
+    expect(cron.schedule).toHaveBeenCalledWith('* * * * *', expect.any(Function));
   });
 
-  it('exports a workflow worker', async () => {
-    const { workflowWorker } = await import('./index');
-    expect(workflowWorker).toBeDefined();
+  it('stops tasks and closes queue and worker on destroy', async () => {
+    const task = { stop: jest.fn() };
+    (cron.schedule as jest.Mock).mockReturnValueOnce(task);
+    const service = new WorkflowEngineService();
+    service.onModuleInit();
+    await service.onModuleDestroy();
+    expect(task.stop).toHaveBeenCalled();
+    expect(service.queue.close).toHaveBeenCalled();
+    expect(service.worker.close).toHaveBeenCalled();
   });
 });

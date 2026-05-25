@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
 import type { BlobObjectSummary } from '../../types';
 import type {
@@ -6,6 +7,7 @@ import type {
   UploadBlobInput,
 } from './types';
 
+@Injectable()
 export class BlobStorageClient {
   private readonly client: NonNullable<BlobStorageClientOptions['client']>;
 

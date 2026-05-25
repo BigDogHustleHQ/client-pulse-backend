@@ -1,21 +1,15 @@
-import { createServer } from 'http';
-import express from 'express';
-import { createWebSocketModule } from './modules/websocket';
-import { createIntegrationHubRouter } from './modules/integration-hub';
-import { createDependencyHealthRouter } from './routes/dependencies';
-import { registerCronJobs } from './modules/workflow-engine';
+import { Module } from '@nestjs/common';
+import { WebsocketModule } from './modules/websocket';
+import { WorkflowEngineModule } from './modules/workflow-engine';
+import { IntegrationHubModule } from './modules/integration-hub';
+import { DependenciesModule } from './routes/dependencies';
 
-export const createApp = () => {
-  const app = express();
-
-  app.use(express.json());
-  app.use('/integrations', createIntegrationHubRouter());
-  app.use('/dependencies', createDependencyHealthRouter());
-
-  const httpServer = createServer(app);
-
-  createWebSocketModule(httpServer);
-  registerCronJobs();
-
-  return httpServer;
-};
+@Module({
+  imports: [
+    WebsocketModule,
+    WorkflowEngineModule,
+    IntegrationHubModule,
+    DependenciesModule,
+  ],
+})
+export class AppModule {}

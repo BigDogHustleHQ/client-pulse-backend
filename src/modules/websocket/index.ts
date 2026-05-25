@@ -1,22 +1,28 @@
-import { Server as HttpServer } from 'http';
-import { Server as SocketServer } from 'socket.io';
+import { Module } from '@nestjs/common';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  WebSocketGateway,
+} from '@nestjs/websockets';
+import { Socket } from 'socket.io';
 import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('websocket');
 
-export const createWebSocketModule = (httpServer: HttpServer): SocketServer => {
-  const io = new SocketServer(httpServer, {
-    cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:3000' },
-  });
+@WebSocketGateway({
+  cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:3000' },
+})
+export class WebsocketGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
+  handleConnection(client: Socket): void {
+    log.info(`client connected: ${client.id}`);
+  }
 
-  /* istanbul ignore next */
-  io.on('connection', (socket) => {
-    log.info(`client connected: ${socket.id}`);
+  handleDisconnect(client: Socket): void {
+    log.info(`client disconnected: ${client.id}`);
+  }
+}
 
-    socket.on('disconnect', () => {
-      log.info(`client disconnected: ${socket.id}`);
-    });
-  });
-
-  return io;
-};
+@Module({ providers: [WebsocketGateway] })
+export class WebsocketModule {}

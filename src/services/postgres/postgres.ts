@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { Pool, type QueryResultRow } from 'pg';
 import type {
   DatabaseHealth,
@@ -6,6 +7,7 @@ import type {
   PostgresPool,
 } from './types';
 
+@Injectable()
 export class PostgresClient {
   private readonly pool: PostgresPool;
 

@@ -1,21 +1,22 @@
-import { Router } from 'express';
+import { Controller, Get, HttpCode, HttpStatus, Module, Param, Post } from '@nestjs/common';
 import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('integration-hub');
 
-export const createIntegrationHubRouter = (): Router => {
-  const router = Router();
-
-  router.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
+@Controller('integrations')
+export class IntegrationHubController {
+  @Get('health')
+  health(): { status: string } {
+    return { status: 'ok' };
+  }
 
   // Webhook receiver — individual integration adapters will register here
-  router.post('/webhooks/:provider', (req, res) => {
-    const { provider } = req.params;
+  @Post('webhooks/:provider')
+  @HttpCode(HttpStatus.OK)
+  webhook(@Param('provider') provider: string): void {
     log.info(`webhook received from ${provider}`);
-    res.sendStatus(200);
-  });
+  }
+}
 
-  return router;
-};
+@Module({ controllers: [IntegrationHubController] })
+export class IntegrationHubModule {}

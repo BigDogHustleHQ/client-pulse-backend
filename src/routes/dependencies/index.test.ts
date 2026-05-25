@@ -1,24 +1,42 @@
-import express from 'express';
+import { Test } from '@nestjs/testing';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createDependencyHealthRouter } from './index';
+import { DependenciesModule } from './index';
+import { BLOB_STORAGE_HEALTH, POSTGRES_HEALTH } from './types';
 
-describe('Dependency health router', () => {
-  it('creates a router with default dependency clients', () => {
-    expect(createDependencyHealthRouter()).toBeDefined();
+describe('Dependencies controller', () => {
+  let app: INestApplication;
+  const postgresHealth = jest.fn();
+  const blobStorageHealth = jest.fn();
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [DependenciesModule],
+    })
+      .overrideProvider(POSTGRES_HEALTH)
+      .useValue({ health: postgresHealth })
+      .overrideProvider(BLOB_STORAGE_HEALTH)
+      .useValue({ health: blobStorageHealth })
+      .compile();
+
+    app = moduleRef.createNestApplication({ logger: false });
+    await app.init();
   });
 
-  it('GET /database/health returns PostgreSQL health', async () => {
-    const app = express();
-    const postgres = {
-      health: jest.fn().mockResolvedValue({
-        status: 'ok',
-        now: '2026-05-24T12:00:00.000Z',
-      }),
-    };
+  afterEach(async () => {
+    jest.resetAllMocks();
+    await app.close();
+  });
 
-    app.use('/', createDependencyHealthRouter({ postgres }));
+  it('GET /dependencies/database/health returns PostgreSQL health', async () => {
+    postgresHealth.mockResolvedValue({
+      status: 'ok',
+      now: '2026-05-24T12:00:00.000Z',
+    });
 
-    const res = await request(app).get('/database/health');
+    const res = await request(app.getHttpServer()).get(
+      '/dependencies/database/health',
+    );
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
@@ -27,18 +45,15 @@ describe('Dependency health router', () => {
     });
   });
 
-  it('GET /storage/health returns blob storage health', async () => {
-    const app = express();
-    const blobStorage = {
-      health: jest.fn().mockResolvedValue({
-        status: 'ok',
-        buckets: ['media-uploads'],
-      }),
-    };
+  it('GET /dependencies/storage/health returns blob storage health', async () => {
+    blobStorageHealth.mockResolvedValue({
+      status: 'ok',
+      buckets: ['media-uploads'],
+    });
 
-    app.use('/', createDependencyHealthRouter({ blobStorage }));
-
-    const res = await request(app).get('/storage/health');
+    const res = await request(app.getHttpServer()).get(
+      '/dependencies/storage/health',
+    );
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
@@ -47,28 +62,22 @@ describe('Dependency health router', () => {
     });
   });
 
-  it('passes PostgreSQL health failures to Express error handling', async () => {
-    const app = express();
-    const postgres = {
-      health: jest.fn().mockRejectedValue(new Error('database unavailable')),
-    };
+  it('returns 500 when PostgreSQL health fails', async () => {
+    postgresHealth.mockRejectedValue(new Error('database unavailable'));
 
-    app.use('/', createDependencyHealthRouter({ postgres }));
-
-    const res = await request(app).get('/database/health');
+    const res = await request(app.getHttpServer()).get(
+      '/dependencies/database/health',
+    );
 
     expect(res.status).toBe(500);
   });
 
-  it('passes blob storage health failures to Express error handling', async () => {
-    const app = express();
-    const blobStorage = {
-      health: jest.fn().mockRejectedValue(new Error('storage unavailable')),
-    };
+  it('returns 500 when blob storage health fails', async () => {
+    blobStorageHealth.mockRejectedValue(new Error('storage unavailable'));
 
-    app.use('/', createDependencyHealthRouter({ blobStorage }));
-
-    const res = await request(app).get('/storage/health');
+    const res = await request(app.getHttpServer()).get(
+      '/dependencies/storage/health',
+    );
 
     expect(res.status).toBe(500);
   });
