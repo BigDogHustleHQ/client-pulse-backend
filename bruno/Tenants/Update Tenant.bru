@@ -1,0 +1,31 @@
+meta {
+  name: Update Tenant
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/tenants/:id
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+params:path {
+  id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+{
+  "name": "Acme Diner",
+  "status": "active"
+}
+}
+
+docs {
+  Partially updates a tenant. At least one of name, slug, or status must be provided. Every successful update writes an audit_logs row. Returns 404 if the tenant does not exist, 400 if the body is empty or status is invalid.
+}

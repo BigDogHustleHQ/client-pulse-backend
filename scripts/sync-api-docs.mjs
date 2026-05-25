@@ -109,7 +109,7 @@ const pruneStale = (dir) => {
     const full = join(dir, entry.name);
     if (entry.isDirectory() && entry.name !== 'environments') {
       pruneStale(full);
-    } else if (entry.isFile() && entry.name.endsWith('.bru') && !generated.has(full)) {
+    } else if (entry.isFile() && entry.name.endsWith('.bru') && entry.name !== 'collection.bru' && !generated.has(full)) {
       rmSync(full);
       console.log(`  ✗ removed ${relative(root, full)}`);
     }

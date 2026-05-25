@@ -65,4 +65,42 @@ export class BlobStorageClient {
       updatedAt: null,
     };
   }
+
+  async remove(bucket: string, paths: string[]): Promise<string[]> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .remove(paths);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((o) => o.name);
+  }
+
+  async list(bucket: string, prefix?: string): Promise<string[]> {
+    const { data, error } = await this.client.storage.from(bucket).list(prefix);
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map((o) => o.name);
+  }
+
+  async createSignedUrl(
+    bucket: string,
+    path: string,
+    expiresIn: number,
+  ): Promise<{ signedUrl: string }> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .createSignedUrl(path, expiresIn);
+
+    if (error) {
+      throw error;
+    }
+
+    return { signedUrl: data?.signedUrl ?? '' };
+  }
 }

@@ -18,6 +18,21 @@ export interface BlobStorageAdapter {
         data: { path: string; id: string | null } | null;
         error: unknown | null;
       }>;
+      remove(paths: string[]): Promise<{
+        data: { name: string }[] | null;
+        error: unknown | null;
+      }>;
+      list(prefix?: string): Promise<{
+        data: { name: string }[] | null;
+        error: unknown | null;
+      }>;
+      createSignedUrl(
+        path: string,
+        expiresIn: number,
+      ): Promise<{
+        data: { signedUrl: string } | null;
+        error: unknown | null;
+      }>;
     };
   };
 }
