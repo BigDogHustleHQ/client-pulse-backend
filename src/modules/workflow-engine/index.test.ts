@@ -34,7 +34,10 @@ describe('WorkflowEngineService', () => {
   it('schedules a cron tick on init', () => {
     const service = new WorkflowEngineService();
     service.onModuleInit();
-    expect(cron.schedule).toHaveBeenCalledWith('* * * * *', expect.any(Function));
+    expect(cron.schedule).toHaveBeenCalledWith(
+      '* * * * *',
+      expect.any(Function),
+    );
   });
 
   it('stops tasks and closes queue and worker on destroy', async () => {

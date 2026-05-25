@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,6 +8,7 @@ import {
   Inject,
   Module,
   Param,
+  ParseEnumPipe,
   Post,
   Put,
   Query,
@@ -17,6 +17,11 @@ import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { StorageBucket } from '../../types/enums/storage';
 import type { BlobObjectSummary } from '../../types';
 import { STORAGE_WRITER, type StorageWriter } from './types';
+import {
+  CreateSignedUrlDto,
+  DeleteObjectsDto,
+  UploadObjectDto,
+} from './dto';
 
 const storageWriter: StorageWriter = {
   upload: /* istanbul ignore next */ (input) =>
@@ -32,63 +37,46 @@ const storageWriter: StorageWriter = {
 export class StorageController {
   constructor(@Inject(STORAGE_WRITER) private readonly writer: StorageWriter) {}
 
-  private assertBucket(bucket: string): void {
-    if (!Object.values(StorageBucket).includes(bucket as StorageBucket)) {
-      throw new BadRequestException(`Unknown storage bucket: ${bucket}`);
-    }
-  }
-
+  // Store or replace a customer file: photo/logo uploads (media-uploads) or a
+  // published AI-generated website build (generated-sites).
   @Put(':bucket/objects')
   @HttpCode(HttpStatus.OK)
   upload(
-    @Param('bucket') bucket: string,
-    @Body()
-    body: {
-      path: string;
-      body: string;
-      contentType?: string;
-      upsert?: boolean;
-    },
+    @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
+    @Body() body: UploadObjectDto,
   ): Promise<BlobObjectSummary> {
-    this.assertBucket(bucket);
     return this.writer.upload({ bucket, ...body });
   }
 
+  // Remove customer files — e.g. cleaning up replaced media or tearing down a
+  // generated site when a customer offboards.
   @Delete(':bucket/objects')
   async remove(
-    @Param('bucket') bucket: string,
-    @Body() body: { paths: string[] },
+    @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
+    @Body() body: DeleteObjectsDto,
   ): Promise<{ removed: string[] }> {
-    this.assertBucket(bucket);
-    if (!Array.isArray(body.paths) || body.paths.length === 0) {
-      throw new BadRequestException('paths must be a non-empty array');
-    }
     return { removed: await this.writer.remove(bucket, body.paths) };
   }
 
+  // Browse a customer's stored files — powers the dashboard media library and
+  // the generated-site file listing.
   @Get(':bucket/objects')
   async list(
-    @Param('bucket') bucket: string,
+    @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
     @Query('prefix') prefix?: string,
   ): Promise<{ objects: string[] }> {
-    this.assertBucket(bucket);
     return { objects: await this.writer.list(bucket, prefix) };
   }
 
+  // Issue a short-lived signed download link so the frontend can fetch a
+  // private customer file straight from storage without proxying bytes
+  // through this service.
   @Post(':bucket/objects/signed-url')
   signedUrl(
-    @Param('bucket') bucket: string,
-    @Body() body: { path: string; expiresIn?: number },
+    @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
+    @Body() body: CreateSignedUrlDto,
   ): Promise<{ signedUrl: string }> {
-    this.assertBucket(bucket);
-    if (!body.path) {
-      throw new BadRequestException('path is required');
-    }
-    return this.writer.createSignedUrl(
-      bucket,
-      body.path,
-      body.expiresIn ?? 3600,
-    );
+    return this.writer.createSignedUrl(bucket, body.path, body.expiresIn ?? 3600);
   }
 }
 

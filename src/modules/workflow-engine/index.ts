@@ -1,4 +1,9 @@
-import { Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Module,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import cron, { ScheduledTask } from 'node-cron';
 import { createModuleLogger } from '../../lib/logger';

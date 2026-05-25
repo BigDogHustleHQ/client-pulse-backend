@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import type { INestApplication } from '@nestjs/common';
+import { ValidationPipe, type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { StorageModule } from './index';
 import { STORAGE_WRITER } from './types';
@@ -20,6 +20,7 @@ describe('Storage controller', () => {
       .compile();
 
     app = moduleRef.createNestApplication({ logger: false });
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     await app.init();
   });
 

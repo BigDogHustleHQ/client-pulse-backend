@@ -18,11 +18,15 @@ export class DependenciesController {
     private readonly blobStorage: BlobStorageHealthCheck,
   ) {}
 
+  // Readiness check for the tenant database (Supabase Postgres). Surfaced on
+  // status dashboards and used as a deploy/health gate before serving traffic.
   @Get('database/health')
   async databaseHealth(): Promise<DatabaseHealth> {
     return this.postgres.health();
   }
 
+  // Readiness check for blob storage (customer media uploads + AI-generated
+  // sites). Confirms the Supabase service-role credentials are valid.
   @Get('storage/health')
   async storageHealth(): Promise<BlobStorageHealth> {
     return this.blobStorage.health();
