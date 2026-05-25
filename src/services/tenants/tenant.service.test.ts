@@ -3,27 +3,31 @@ import { TenantStatus } from '../../types/enums/tenant';
 import type { PostgresClient } from '../postgres/postgres';
 
 describe('TenantService', () => {
-  const query = jest.fn();
-  const mockPg = { query } as unknown as PostgresClient;
+  const findTenantById = jest.fn();
+  const updateTenant = jest.fn();
+  const insertAuditLog = jest.fn();
+  const mockPg = {
+    findTenantById,
+    updateTenant,
+    insertAuditLog,
+  } as unknown as PostgresClient;
   const service = new TenantService(mockPg);
 
-  const createdAt = new Date('2026-05-24T12:00:00.000Z');
-  const updatedAt = new Date('2026-05-25T12:00:00.000Z');
   const dbRow = {
     id: 'tenant-1',
     name: 'Acme',
     slug: 'acme',
     status: TenantStatus.Active,
-    created_at: createdAt,
-    updated_at: updatedAt,
+    created_at: '2026-05-24T12:00:00.000Z',
+    updated_at: '2026-05-25T12:00:00.000Z',
   };
   const mappedTenant = {
     id: 'tenant-1',
     name: 'Acme',
     slug: 'acme',
     status: TenantStatus.Active,
-    createdAt: createdAt.toISOString(),
-    updatedAt: updatedAt.toISOString(),
+    createdAt: '2026-05-24T12:00:00.000Z',
+    updatedAt: '2026-05-25T12:00:00.000Z',
   };
 
   afterEach(() => {
@@ -32,98 +36,44 @@ describe('TenantService', () => {
 
   describe('findById', () => {
     it('returns the mapped tenant when found', async () => {
-      query.mockResolvedValue({ rows: [dbRow], rowCount: 1 });
+      findTenantById.mockResolvedValue(dbRow);
 
       await expect(service.findById('tenant-1')).resolves.toEqual(mappedTenant);
-      expect(query.mock.calls[0]).toEqual([
-        'select id, name, slug, status, created_at, updated_at from tenants where id = $1',
-        ['tenant-1'],
-      ]);
+      expect(findTenantById).toHaveBeenCalledWith('tenant-1');
     });
 
     it('returns null when not found', async () => {
-      query.mockResolvedValue({ rows: [], rowCount: 0 });
+      findTenantById.mockResolvedValue(null);
 
       await expect(service.findById('missing')).resolves.toBeNull();
     });
   });
 
   describe('update', () => {
-    it('updates a single field (name) and writes an audit row', async () => {
-      query
-        .mockResolvedValueOnce({ rows: [dbRow], rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
+    it('updates a tenant and writes an audit row', async () => {
+      const patch = { name: 'New Name' };
+      updateTenant.mockResolvedValue(dbRow);
 
-      await expect(
-        service.update('tenant-1', { name: 'New Name' }),
-      ).resolves.toEqual(mappedTenant);
+      await expect(service.update('tenant-1', patch)).resolves.toEqual(
+        mappedTenant,
+      );
 
-      expect(query.mock.calls[0]).toEqual([
-        'update tenants set name = $1, updated_at = now() where id = $2 returning id, name, slug, status, created_at, updated_at',
-        ['New Name', 'tenant-1'],
-      ]);
-      expect(query.mock.calls[1]).toEqual([
-        'insert into audit_logs (tenant_id, action, metadata) values ($1, $2, $3)',
-        ['tenant-1', 'tenant.updated', JSON.stringify({ name: 'New Name' })],
-      ]);
-    });
-
-    it('updates the slug field', async () => {
-      query
-        .mockResolvedValueOnce({ rows: [dbRow], rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
-
-      await service.update('tenant-1', { slug: 'new-slug' });
-
-      expect(query.mock.calls[0]).toEqual([
-        'update tenants set slug = $1, updated_at = now() where id = $2 returning id, name, slug, status, created_at, updated_at',
-        ['new-slug', 'tenant-1'],
-      ]);
-    });
-
-    it('updates the status field', async () => {
-      query
-        .mockResolvedValueOnce({ rows: [dbRow], rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
-
-      await service.update('tenant-1', { status: TenantStatus.Suspended });
-
-      expect(query.mock.calls[0]).toEqual([
-        'update tenants set status = $1, updated_at = now() where id = $2 returning id, name, slug, status, created_at, updated_at',
-        [TenantStatus.Suspended, 'tenant-1'],
-      ]);
-    });
-
-    it('updates multiple fields with sequential placeholders', async () => {
-      query
-        .mockResolvedValueOnce({ rows: [dbRow], rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [], rowCount: 1 });
-
-      const patch = {
-        name: 'New Name',
-        slug: 'new-slug',
-        status: TenantStatus.Suspended,
-      };
-      await service.update('tenant-1', patch);
-
-      expect(query.mock.calls[0]).toEqual([
-        'update tenants set name = $1, slug = $2, status = $3, updated_at = now() where id = $4 returning id, name, slug, status, created_at, updated_at',
-        ['New Name', 'new-slug', TenantStatus.Suspended, 'tenant-1'],
-      ]);
-      expect(query.mock.calls[1]).toEqual([
-        'insert into audit_logs (tenant_id, action, metadata) values ($1, $2, $3)',
-        ['tenant-1', 'tenant.updated', JSON.stringify(patch)],
-      ]);
+      expect(updateTenant).toHaveBeenCalledWith('tenant-1', patch);
+      expect(insertAuditLog).toHaveBeenCalledWith(
+        'tenant-1',
+        'tenant.updated',
+        patch,
+      );
     });
 
     it('returns null and writes no audit row when the tenant does not exist', async () => {
-      query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+      updateTenant.mockResolvedValue(null);
 
       await expect(
         service.update('missing', { name: 'New Name' }),
       ).resolves.toBeNull();
 
-      expect(query).toHaveBeenCalledTimes(1);
+      expect(insertAuditLog).not.toHaveBeenCalled();
     });
   });
 });

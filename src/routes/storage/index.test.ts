@@ -20,7 +20,9 @@ describe('Storage controller', () => {
       .compile();
 
     app = moduleRef.createNestApplication({ logger: false });
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
   });
 

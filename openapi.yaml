@@ -86,7 +86,7 @@ paths:
       operationId: getDatabaseHealth
       tags: [Dependency Health]
       summary: Database Health Check
-      description: Verifies the Supabase PostgreSQL connection with a lightweight `select now()` query.
+      description: Verifies the Supabase PostgreSQL REST API by reading from the tenants table.
       responses:
         '200':
           description: Database connection is healthy

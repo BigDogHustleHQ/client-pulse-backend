@@ -1,49 +1,112 @@
 import { Injectable } from '@nestjs/common';
-import { Pool, type QueryResultRow } from 'pg';
+import { createClient } from '@supabase/supabase-js';
 import type {
   DatabaseHealth,
-  DatabaseQueryResult,
   PostgresClientOptions,
-  PostgresPool,
+  SupabaseDatabaseAdapter,
+  TenantRow,
 } from './types';
 
 @Injectable()
 export class PostgresClient {
-  private readonly pool: PostgresPool;
+  private readonly client: SupabaseDatabaseAdapter;
 
   constructor(options: PostgresClientOptions = {}) {
-    if (options.pool) {
-      this.pool = options.pool;
+    if (options.client) {
+      this.client = options.client;
       return;
     }
 
     /* istanbul ignore next */
-    const connectionString =
-      options.connectionString ?? process.env.DATABASE_URL;
-    /* istanbul ignore next */
-    this.pool = new Pool({
-      connectionString,
-      ssl: connectionString ? { rejectUnauthorized: false } : undefined,
-      ...options.poolConfig,
-    });
+    const supabaseUrl = options.supabaseUrl ?? process.env.SUPABASE_URL;
+    const serviceRoleKey =
+      options.serviceRoleKey ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error(
+        'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for database access',
+      );
+    }
+
+    this.client = createClient(
+      supabaseUrl,
+      serviceRoleKey,
+    ) as unknown as SupabaseDatabaseAdapter;
   }
 
   async health(): Promise<DatabaseHealth> {
-    const result = await this.query<{ now: Date }>('select now() as now');
+    const { error } = await this.client.from('tenants').select('id').limit(1);
+
+    if (error) {
+      throw error;
+    }
+
     return {
       status: 'ok',
-      now: result.rows[0]?.now.toISOString() ?? new Date(0).toISOString(),
+      now: new Date().toISOString(),
     };
   }
 
-  async query<T extends QueryResultRow = QueryResultRow>(
-    text: string,
-    values?: unknown[],
-  ): Promise<DatabaseQueryResult<T>> {
-    return this.pool.query<T>(text, values);
+  async findTenantById(id: string): Promise<TenantRow | null> {
+    const { data, error } = await this.client
+      .from('tenants')
+      .select('id, name, slug, status, created_at, updated_at')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (this.isNoRowsError(error)) {
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
   }
 
-  async close(): Promise<void> {
-    await this.pool.end();
+  async updateTenant(
+    id: string,
+    patch: Partial<Pick<TenantRow, 'name' | 'slug' | 'status'>>,
+  ): Promise<TenantRow | null> {
+    const { data, error } = await this.client
+      .from('tenants')
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id, name, slug, status, created_at, updated_at')
+      .single();
+
+    if (error) {
+      if (this.isNoRowsError(error)) {
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
+  }
+
+  async insertAuditLog(
+    tenantId: string,
+    action: string,
+    metadata: unknown,
+  ): Promise<void> {
+    const { error } = await this.client.from('audit_logs').insert({
+      tenant_id: tenantId,
+      action,
+      metadata,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  private isNoRowsError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'PGRST116'
+    );
   }
 }

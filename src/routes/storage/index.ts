@@ -17,11 +17,7 @@ import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { StorageBucket } from '../../types/enums/storage';
 import type { BlobObjectSummary } from '../../types';
 import { STORAGE_WRITER, type StorageWriter } from './types';
-import {
-  CreateSignedUrlDto,
-  DeleteObjectsDto,
-  UploadObjectDto,
-} from './dto';
+import { CreateSignedUrlDto, DeleteObjectsDto, UploadObjectDto } from './dto';
 
 const storageWriter: StorageWriter = {
   upload: /* istanbul ignore next */ (input) =>
@@ -76,7 +72,11 @@ export class StorageController {
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
     @Body() body: CreateSignedUrlDto,
   ): Promise<{ signedUrl: string }> {
-    return this.writer.createSignedUrl(bucket, body.path, body.expiresIn ?? 3600);
+    return this.writer.createSignedUrl(
+      bucket,
+      body.path,
+      body.expiresIn ?? 3600,
+    );
   }
 }
 
