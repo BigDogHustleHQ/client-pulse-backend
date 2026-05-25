@@ -11,7 +11,11 @@ info:
 
 servers:
   - url: http://localhost:3001
-    description: Local development
+    description: Local
+  - url: https://clientpulse-backend-development.up.railway.app
+    description: Development (Railway)
+  - url: https://clientpulse-backend-staging.up.railway.app
+    description: Staging (Railway)
   - url: https://clientpulse-backend.up.railway.app
     description: Production (Railway)
 

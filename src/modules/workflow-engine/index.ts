@@ -21,8 +21,11 @@ export const workflowWorker = new Worker(
 );
 
 export function registerCronJobs(): ScheduledTask[] {
-  const tick = cron.schedule('* * * * *', /* istanbul ignore next */ () => {
-    log.debug('cron tick');
-  });
+  const tick = cron.schedule(
+    '* * * * *',
+    /* istanbul ignore next */ () => {
+      log.debug('cron tick');
+    },
+  );
   return [tick];
 }
