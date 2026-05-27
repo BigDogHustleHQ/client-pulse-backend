@@ -1,5 +1,9 @@
 import { Test } from '@nestjs/testing';
-import { ValidationPipe, type INestApplication } from '@nestjs/common';
+import {
+  HttpStatus,
+  ValidationPipe,
+  type INestApplication,
+} from '@nestjs/common';
 import request from 'supertest';
 import { TenantsModule } from './index';
 import { TenantService } from '../../services/tenants/tenant.service';
@@ -47,7 +51,7 @@ describe('Tenants controller', () => {
 
     const res = await request(app.getHttpServer()).get('/tenants/tenant-1');
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual(tenant);
     expect(findById).toHaveBeenCalledWith('tenant-1');
   });
@@ -57,7 +61,7 @@ describe('Tenants controller', () => {
 
     const res = await request(app.getHttpServer()).get('/tenants/missing');
 
-    expect(res.status).toBe(404);
+    expect(res.status).toEqual(HttpStatus.NOT_FOUND);
   });
 
   it('PATCH /tenants/:id updates the tenant', async () => {
@@ -67,7 +71,7 @@ describe('Tenants controller', () => {
       .patch('/tenants/tenant-1')
       .send({ name: 'New Name' });
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual(tenant);
     expect(update).toHaveBeenCalledWith('tenant-1', { name: 'New Name' });
   });
@@ -77,7 +81,7 @@ describe('Tenants controller', () => {
       .patch('/tenants/tenant-1')
       .send({});
 
-    expect(res.status).toBe(400);
+    expect(res.status).toEqual(HttpStatus.BAD_REQUEST);
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -86,7 +90,7 @@ describe('Tenants controller', () => {
       .patch('/tenants/tenant-1')
       .send({ status: 'archived' });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toEqual(HttpStatus.BAD_REQUEST);
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -97,6 +101,6 @@ describe('Tenants controller', () => {
       .patch('/tenants/missing')
       .send({ status: TenantStatus.Suspended });
 
-    expect(res.status).toBe(404);
+    expect(res.status).toEqual(HttpStatus.NOT_FOUND);
   });
 });

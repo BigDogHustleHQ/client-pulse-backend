@@ -9,7 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class UploadObjectDto {
+export class StorageUploadObjectDto {
   @IsString()
   @IsNotEmpty()
   path!: string;
@@ -26,14 +26,14 @@ export class UploadObjectDto {
   upsert?: boolean;
 }
 
-export class DeleteObjectsDto {
+export class StorageDeleteObjectsDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
   paths!: string[];
 }
 
-export class CreateSignedUrlDto {
+export class StorageCreateSignedUrlDto {
   @IsString()
   @IsNotEmpty()
   path!: string;

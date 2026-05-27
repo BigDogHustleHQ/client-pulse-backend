@@ -1,5 +1,9 @@
 import { Test } from '@nestjs/testing';
-import { ValidationPipe, type INestApplication } from '@nestjs/common';
+import {
+  HttpStatus,
+  ValidationPipe,
+  type INestApplication,
+} from '@nestjs/common';
 import request from 'supertest';
 import { StorageModule } from './index';
 import { STORAGE_WRITER } from './types';
@@ -43,7 +47,7 @@ describe('Storage controller', () => {
       .put('/storage/media-uploads/objects')
       .send({ path: 'logo.png', body: 'data', contentType: 'image/png' });
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(upload).toHaveBeenCalledWith({
       bucket: 'media-uploads',
       path: 'logo.png',
@@ -57,7 +61,7 @@ describe('Storage controller', () => {
       .put('/storage/bogus/objects')
       .send({ path: 'logo.png', body: 'data' });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toEqual(HttpStatus.BAD_REQUEST);
     expect(upload).not.toHaveBeenCalled();
   });
 
@@ -68,7 +72,7 @@ describe('Storage controller', () => {
       .delete('/storage/media-uploads/objects')
       .send({ paths: ['a.png', 'b.png'] });
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({ removed: ['a.png', 'b.png'] });
     expect(remove).toHaveBeenCalledWith('media-uploads', ['a.png', 'b.png']);
   });
@@ -78,7 +82,7 @@ describe('Storage controller', () => {
       .delete('/storage/media-uploads/objects')
       .send({ paths: [] });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toEqual(HttpStatus.BAD_REQUEST);
     expect(remove).not.toHaveBeenCalled();
   });
 
@@ -89,7 +93,7 @@ describe('Storage controller', () => {
       .get('/storage/generated-sites/objects')
       .query({ prefix: 'tenants/' });
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({ objects: ['a.png'] });
     expect(list).toHaveBeenCalledWith('generated-sites', 'tenants/');
   });
@@ -101,7 +105,7 @@ describe('Storage controller', () => {
       .post('/storage/media-uploads/objects/signed-url')
       .send({ path: 'a.png' });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toEqual(HttpStatus.CREATED);
     expect(res.body).toEqual({ signedUrl: 'https://signed/a.png' });
     expect(createSignedUrl).toHaveBeenCalledWith(
       'media-uploads',
@@ -115,7 +119,7 @@ describe('Storage controller', () => {
       .post('/storage/media-uploads/objects/signed-url')
       .send({});
 
-    expect(res.status).toBe(400);
+    expect(res.status).toEqual(HttpStatus.BAD_REQUEST);
     expect(createSignedUrl).not.toHaveBeenCalled();
   });
 });

@@ -17,7 +17,11 @@ import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { StorageBucket } from '../../types/enums/storage';
 import type { BlobObjectSummary } from '../../types';
 import { STORAGE_WRITER, type StorageWriter } from './types';
-import { CreateSignedUrlDto, DeleteObjectsDto, UploadObjectDto } from './dto';
+import {
+  StorageCreateSignedUrlDto,
+  StorageDeleteObjectsDto,
+  StorageUploadObjectDto,
+} from './dto';
 
 // Lazily constructed once and reused — building the client reads env and opens
 // a Supabase connection, so we don't want a fresh one per request.
@@ -47,7 +51,7 @@ export class StorageController {
   @HttpCode(HttpStatus.OK)
   upload(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
-    @Body() body: UploadObjectDto,
+    @Body() body: StorageUploadObjectDto,
   ): Promise<BlobObjectSummary> {
     return this.writer.upload({ bucket, ...body });
   }
@@ -60,7 +64,7 @@ export class StorageController {
   @Delete(':bucket/objects')
   async remove(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
-    @Body() body: DeleteObjectsDto,
+    @Body() body: StorageDeleteObjectsDto,
   ): Promise<{ removed: string[] }> {
     return { removed: await this.writer.remove(bucket, body.paths) };
   }
@@ -87,7 +91,7 @@ export class StorageController {
   @Post(':bucket/objects/signed-url')
   signedUrl(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
-    @Body() body: CreateSignedUrlDto,
+    @Body() body: StorageCreateSignedUrlDto,
   ): Promise<{ signedUrl: string }> {
     return this.writer.createSignedUrl(
       bucket,

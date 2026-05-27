@@ -23,7 +23,7 @@ describe('WorkflowEngineService', () => {
   it('creates a workflow queue named workflows', () => {
     const service = new WorkflowEngineService();
     expect(service.queue).toBeDefined();
-    expect(service.queue.name).toBe('workflows');
+    expect(service.queue.name).toEqual('workflows');
   });
 
   it('creates a workflow worker', () => {

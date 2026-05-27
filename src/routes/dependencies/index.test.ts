@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import type { INestApplication } from '@nestjs/common';
+import { HttpStatus, type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { DependenciesModule } from './index';
 import { BLOB_STORAGE_HEALTH, POSTGRES_HEALTH } from './types';
@@ -38,7 +38,7 @@ describe('Dependencies controller', () => {
       '/dependencies/database/health',
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({
       status: 'ok',
       now: '2026-05-24T12:00:00.000Z',
@@ -55,7 +55,7 @@ describe('Dependencies controller', () => {
       '/dependencies/storage/health',
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({
       status: 'ok',
       buckets: ['media-uploads'],
@@ -69,7 +69,7 @@ describe('Dependencies controller', () => {
       '/dependencies/database/health',
     );
 
-    expect(res.status).toBe(500);
+    expect(res.status).toEqual(HttpStatus.INTERNAL_SERVER_ERROR);
   });
 
   it('returns 500 when blob storage health fails', async () => {
@@ -79,6 +79,6 @@ describe('Dependencies controller', () => {
       '/dependencies/storage/health',
     );
 
-    expect(res.status).toBe(500);
+    expect(res.status).toEqual(HttpStatus.INTERNAL_SERVER_ERROR);
   });
 });

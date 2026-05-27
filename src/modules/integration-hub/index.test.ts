@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { IntegrationHubController } from './index';
@@ -21,7 +21,7 @@ describe('Integration Hub controller', () => {
 
   it('GET /integrations/health returns ok', async () => {
     const res = await request(app.getHttpServer()).get('/integrations/health');
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({ status: 'ok' });
   });
 
@@ -29,6 +29,6 @@ describe('Integration Hub controller', () => {
     const res = await request(app.getHttpServer())
       .post('/integrations/webhooks/stripe')
       .send({});
-    expect(res.status).toBe(200);
+    expect(res.status).toEqual(HttpStatus.OK);
   });
 });

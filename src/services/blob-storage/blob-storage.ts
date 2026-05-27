@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
+import { createModuleLogger } from '../../lib/logger';
 import type { BlobObjectSummary } from '../../types';
 import type {
   BlobStorageClientOptions,
   BlobStorageHealth,
   UploadBlobInput,
 } from './types';
+
+const log = createModuleLogger('blob-storage');
 
 @Injectable()
 export class BlobStorageClient {
@@ -37,6 +40,7 @@ export class BlobStorageClient {
     const { data, error } = await this.client.storage.listBuckets();
 
     if (error) {
+      log.error('failed to list storage buckets', { error });
       throw error;
     }
 
@@ -55,6 +59,11 @@ export class BlobStorageClient {
       });
 
     if (error) {
+      log.error('failed to upload blob', {
+        bucket: input.bucket,
+        path: input.path,
+        error,
+      });
       throw error;
     }
 
@@ -72,6 +81,7 @@ export class BlobStorageClient {
       .remove(paths);
 
     if (error) {
+      log.error('failed to remove blobs', { bucket, paths, error });
       throw error;
     }
 
@@ -82,6 +92,7 @@ export class BlobStorageClient {
     const { data, error } = await this.client.storage.from(bucket).list(prefix);
 
     if (error) {
+      log.error('failed to list blobs', { bucket, prefix, error });
       throw error;
     }
 
@@ -98,6 +109,7 @@ export class BlobStorageClient {
       .createSignedUrl(path, expiresIn);
 
     if (error) {
+      log.error('failed to create signed url', { bucket, path, error });
       throw error;
     }
 
