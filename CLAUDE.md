@@ -9,6 +9,7 @@ npm run dev          # dev server with watch mode (port 3001)
 npm run build        # compile TypeScript to dist/
 npm start            # run production build
 npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit (type-check src + tests, no output)
 npm run format       # Prettier format src/
 npm run format:check # check formatting without writing
 npm test             # unit tests
@@ -17,6 +18,11 @@ npm run test:coverage # unit tests with coverage report
 ```
 
 To run a single test file: `npm test -- --testPathPattern=websocket`
+
+## CI & pre-commit
+
+- **GitHub Actions** (`.github/workflows/ci.yml`) runs three jobs on every PR and on pushes to `main`: **Lint & typecheck** (`lint` + `format:check` + `typecheck`), **Unit tests & coverage** (`test:coverage`), and **Build** (`build`). The coverage gate is the `coverageThreshold` in `jest.config.ts` (100% global) — a PR that drops coverage fails the test job.
+- **Pre-commit hook** (Husky, `.husky/pre-commit`) runs `lint-staged` (ESLint `--fix` + Prettier on staged `*.ts`) then `npm run typecheck`. Hooks install automatically via the `prepare` script on `npm install`.
 
 ## Architecture
 
