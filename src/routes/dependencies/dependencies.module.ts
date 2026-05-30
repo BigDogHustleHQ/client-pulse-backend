@@ -1,14 +1,14 @@
 import { Controller, Get, Inject, Module } from '@nestjs/common';
 import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { PostgresClient } from '../../services/postgres/postgres';
-import type { BlobStorageHealth } from '../../services/blob-storage/types';
-import type { DatabaseHealth } from '../../services/postgres/types';
+import type { BlobStorageHealth } from '../../services/blob-storage/blob-storage.types';
+import type { DatabaseHealth } from '../../services/postgres/postgres.types';
 import {
   BLOB_STORAGE_HEALTH,
   POSTGRES_HEALTH,
   type BlobStorageHealthCheck,
   type PostgresHealthCheck,
-} from './types';
+} from './dependencies.types';
 
 // Lazily constructed once and reused — building a client reads env and opens a
 // Supabase connection, so we don't want a fresh one per health probe.

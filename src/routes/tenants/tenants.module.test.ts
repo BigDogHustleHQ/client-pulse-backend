@@ -5,10 +5,16 @@ import {
   type INestApplication,
 } from '@nestjs/common';
 import request from 'supertest';
-import { TenantsModule } from './index';
+import { TenantsModule } from './tenants.module';
 import { TenantService } from '../../services/tenants/tenant.service';
 import { PostgresClient } from '../../services/postgres/postgres';
+import { ClerkAuthGuard } from '../../lib/auth/clerk-auth.guard';
 import { TenantStatus } from '../../types/enums/tenant';
+
+jest.mock('@clerk/backend', () => ({
+  createClerkClient: jest.fn(() => ({})),
+  verifyToken: jest.fn(),
+}));
 
 describe('Tenants controller', () => {
   let app: INestApplication;
@@ -32,6 +38,8 @@ describe('Tenants controller', () => {
       .useValue({ findById, update })
       .overrideProvider(PostgresClient)
       .useValue({})
+      .overrideGuard(ClerkAuthGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication({ logger: false });

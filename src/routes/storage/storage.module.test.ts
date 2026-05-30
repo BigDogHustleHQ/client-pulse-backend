@@ -5,8 +5,14 @@ import {
   type INestApplication,
 } from '@nestjs/common';
 import request from 'supertest';
-import { StorageModule } from './index';
-import { STORAGE_WRITER } from './types';
+import { StorageModule } from './storage.module';
+import { ClerkAuthGuard } from '../../lib/auth/clerk-auth.guard';
+import { STORAGE_WRITER } from './storage.types';
+
+jest.mock('@clerk/backend', () => ({
+  createClerkClient: jest.fn(() => ({})),
+  verifyToken: jest.fn(),
+}));
 
 describe('Storage controller', () => {
   let app: INestApplication;
@@ -21,6 +27,8 @@ describe('Storage controller', () => {
     })
       .overrideProvider(STORAGE_WRITER)
       .useValue({ upload, remove, list, createSignedUrl })
+      .overrideGuard(ClerkAuthGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication({ logger: false });

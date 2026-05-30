@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { WebsocketGateway } from './index';
+import { WebsocketGateway } from './websocket.module';
 
 describe('WebsocketGateway', () => {
   const client = { id: 'socket-1' } as unknown as Socket;

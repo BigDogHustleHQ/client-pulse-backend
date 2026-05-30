@@ -1,5 +1,5 @@
 import type { BlobObjectSummary } from '../../types';
-import type { UploadBlobInput } from '../../services/blob-storage/types';
+import type { UploadBlobInput } from '../../services/blob-storage/blob-storage.types';
 
 export const STORAGE_WRITER = 'STORAGE_WRITER';
 

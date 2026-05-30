@@ -5,7 +5,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
-import { createModuleLogger } from '../../lib/logger';
+import { createModuleLogger } from '../../lib/logger/logger';
 
 const log = createModuleLogger('websocket');
 
