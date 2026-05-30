@@ -1,10 +1,9 @@
 name: CI
 
-# Runs on every PR and on pushes to main, mirroring SID-62's "jobs run on every
-# PR" gate. The frontend-only legs from the original issue (Storybook,
-# Playwright, axe-core, Chromatic) don't apply to this NestJS backend; the
-# backend equivalents are lint/typecheck, unit tests + coverage, build, and
-# Cucumber integration tests that exercise every HTTP endpoint.
+# Orchestrator: runs on every PR and on pushes to main, delegating to one
+# reusable workflow per concern (see ./lint.yml, ./test.yml, ./build.yml,
+# ./integration.yml). The frontend-only legs from SID-62 (Storybook, Playwright,
+# axe-core, Chromatic) don't apply to this NestJS backend.
 on:
   pull_request:
   push:
@@ -12,7 +11,7 @@ on:
 
 # Cancel superseded runs on the same ref so PRs don't pile up jobs.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -20,62 +19,10 @@ permissions:
 
 jobs:
   lint:
-    name: Lint & typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run typecheck
-
+    uses: ./.github/workflows/lint.yml
   test:
-    name: Unit tests & coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      # coverageThreshold in jest.config.ts fails this step if coverage drops
-      # below the gate, so a PR that lowers coverage fails CI here.
-      - run: npm run test:coverage
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: coverage/
-          if-no-files-found: ignore
-
+    uses: ./.github/workflows/test.yml
   build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-
+    uses: ./.github/workflows/build.yml
   integration:
-    name: Integration tests (Cucumber)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      # Cucumber boots the real HTTP app with the Supabase boundary faked
-      # in-memory, so no Redis/Postgres/storage services are needed.
-      - run: npm run test:integration
+    uses: ./.github/workflows/integration.yml
