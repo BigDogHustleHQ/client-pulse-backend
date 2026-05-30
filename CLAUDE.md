@@ -65,7 +65,7 @@ src/
 
 ## Testing conventions
 
-@.claude/rules/testing.md
+See `.claude/rules/testing.md` (auto-loaded when test files are touched).
 
 ## Stack
 

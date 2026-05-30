@@ -1,3 +1,12 @@
+---
+paths:
+  - "**/*.test.ts"
+  - "jest.config.ts"
+  - "integration/**"
+  - "cucumber.cjs"
+  - "tsconfig.integration.json"
+---
+
 # Testing conventions
 
 Two layers:
