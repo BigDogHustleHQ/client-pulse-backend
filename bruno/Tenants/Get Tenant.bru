@@ -1,0 +1,23 @@
+meta {
+  name: Get Tenant
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/tenants/:id
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+params:path {
+  id: 00000000-0000-0000-0000-000000000000
+}
+
+docs {
+  Fetches a single tenant by id. Returns 404 if no tenant matches.
+}

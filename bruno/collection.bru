@@ -1,0 +1,27 @@
+meta {
+  name: ClientPulse Backend
+  type: collection
+  ignore: node_modules
+}
+
+auth {
+  mode: none
+}
+
+docs {
+  # ClientPulse Backend
+
+  Single Railway service — HTTP + WebSocket backend for ClientPulse.
+
+  **Base URL:** `{{baseUrl}}`
+
+  ## Modules
+
+  | Module | What it does |
+  | --- | --- |
+  | **Integration Hub** | Express routes for incoming webhooks + OAuth flows |
+  | **WebSocket** | Socket.io real-time push to frontend |
+  | **Workflow Engine** | BullMQ job queue + node-cron scheduled triggers |
+
+  See `openapi.yaml` in the repo root for the full HTTP API spec.
+}

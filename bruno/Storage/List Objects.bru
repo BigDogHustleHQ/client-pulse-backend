@@ -1,0 +1,23 @@
+meta {
+  name: List Objects
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/storage/:bucket/objects
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+params:path {
+  bucket: 
+}
+
+docs {
+  Lists object names in the given bucket, optionally filtered by prefix.
+}

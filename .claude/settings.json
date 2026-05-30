@@ -1,0 +1,18 @@
+{
+  "worktree": {
+    "bgIsolation": "worktree"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$CLAUDE_TOOL_INPUT\" in *openapi.yaml*) node scripts/sync-api-docs.mjs ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

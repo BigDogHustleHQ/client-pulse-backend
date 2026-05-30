@@ -1,0 +1,36 @@
+meta {
+  name: Webhook Receiver
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/integrations/webhooks/:provider
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+params:path {
+  provider: stripe
+}
+
+body:json {
+  {
+    "event": "customer.created",
+    "data": {
+      "id": "cus_abc123"
+    }
+  }
+}
+
+docs {
+  Accepts inbound webhook payloads from third-party providers.
+  Each `provider` slug maps to an integration adapter registered in the hub.
+
+  Common provider slugs: `stripe`, `twilio`, `sendgrid`
+}

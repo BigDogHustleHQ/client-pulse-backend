@@ -1,20 +1,34 @@
-import express from 'express';
+import { HttpStatus, INestApplication } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { createIntegrationHubRouter } from './index';
+import { IntegrationHubController } from './index';
 
-const app = express();
-app.use(express.json());
-app.use('/', createIntegrationHubRouter());
+describe('Integration Hub controller', () => {
+  let app: INestApplication;
 
-describe('Integration Hub router', () => {
-  it('GET /health returns ok', async () => {
-    const res = await request(app).get('/health');
-    expect(res.status).toBe(200);
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      controllers: [IntegrationHubController],
+    }).compile();
+
+    app = moduleRef.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('GET /integrations/health returns ok', async () => {
+    const res = await request(app.getHttpServer()).get('/integrations/health');
+    expect(res.status).toEqual(HttpStatus.OK);
     expect(res.body).toEqual({ status: 'ok' });
   });
 
-  it('POST /webhooks/:provider handles webhook', async () => {
-    const res = await request(app).post('/webhooks/stripe').send({});
-    expect(res.status).toBe(200);
+  it('POST /integrations/webhooks/:provider handles webhook', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/integrations/webhooks/stripe')
+      .send({});
+    expect(res.status).toEqual(HttpStatus.OK);
   });
 });

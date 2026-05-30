@@ -20,27 +20,40 @@ To run a single test file: `npm test -- --testPathPattern=websocket`
 
 ## Architecture
 
-Single Node.js process on Railway with three co-located modules. The intent is cheap and simple to start — split into separate Railway services later if one outgrows the others.
+Single Node.js process on Railway, built on **NestJS**. The intent is cheap and simple to start — split into separate Railway services later if one outgrows the others.
 
 ```
 src/
-  main.ts                           # bootstrap — starts HTTP server on PORT (default 3001)
-  server.ts                         # wires all three modules together
+  main.ts                           # bootstrap — NestFactory boots AppModule, global ValidationPipe, listens on PORT (default 3001)
+  server.ts                         # AppModule — imports every feature module
   modules/
-    websocket/index.ts              # Socket.io attached to the HTTP server
-    workflow-engine/index.ts        # BullMQ queue + worker + node-cron jobs
-    integration-hub/index.ts        # Express router — webhooks + OAuth adapters
+    websocket/index.ts              # @WebSocketGateway — Socket.io real-time push
+    workflow-engine/index.ts        # @Injectable — BullMQ queue + worker + node-cron (lifecycle hooks)
+    integration-hub/index.ts        # @Controller — webhook intake + OAuth adapters
+  routes/
+    tenants/                        # @Controller + DTOs — tenant read/update
+    storage/                        # @Controller + DTOs — Supabase Storage object writes
+    dependencies/                   # @Controller — DB + storage health probes
+  services/
+    postgres/                       # Supabase Postgres client
+    blob-storage/                   # Supabase Storage client
+    tenants/                        # tenant domain service (update + audit log)
+  lib/
+    logger/                         # Winston logger + createModuleLogger()
+    validation/                     # custom class-validator decorators
+  types/                            # enums + shared interfaces (see Type organization)
 ```
 
-Each module exports a factory function (`createWebSocketModule`, `createIntegrationHubRouter`, `registerCronJobs`) consumed by `server.ts`. Adding a new integration means adding an adapter under `integration-hub/` and registering it on the router.
+`main.ts` boots `AppModule` via `NestFactory` with a global `ValidationPipe({ whitelist: true, transform: true })`. Each feature is a Nest `@Module` exporting controllers/providers, imported by `AppModule` in `server.ts`. Controllers (under `modules/` and `routes/`) are the HTTP/WebSocket entry points; `services/` holds the clients and domain logic they depend on, wired via dependency injection. Adding a new integration means adding an adapter under `integration-hub/` and registering it on the controller.
 
 ## Module responsibilities
 
 | Module | What it does |
 | --- | --- |
-| **WebSocket** | Real-time push to frontend via Socket.io — presence, live updates |
-| **Workflow Engine** | BullMQ job queue (Redis-backed) + node-cron for scheduled triggers |
-| **Integration Hub** | Express routes for incoming webhooks + OAuth flows for third-party APIs |
+| **WebSocket** | Nest `@WebSocketGateway` (Socket.io) — real-time push to frontend |
+| **Workflow Engine** | `@Injectable` managing a BullMQ queue/worker (Redis-backed) + node-cron via `OnModuleInit`/`OnModuleDestroy` |
+| **Integration Hub** | Nest controller for incoming webhooks + OAuth flows for third-party APIs |
+| **Tenants / Storage / Dependencies** (`routes/`) | HTTP controllers backed by Supabase Postgres/Storage clients in `services/` |
 
 ## Testing conventions
 
@@ -51,11 +64,15 @@ Each module exports a factory function (`createWebSocketModule`, `createIntegrat
 
 ## Stack
 
-- **Node.js 24** + **TypeScript 6** — `tsconfig.json` targets ES2022/CommonJS
-- **Express 5** — HTTP layer for Integration Hub webhooks
+- **Node.js 24** + **TypeScript 6** — `tsconfig.json` targets ES2022/CommonJS, with `experimentalDecorators`/`emitDecoratorMetadata` enabled for Nest
+- **NestJS 11** — application framework (DI, modules, controllers, gateways); `@nestjs/platform-express` is the HTTP adapter, `@nestjs/platform-socket.io` the WebSocket adapter
+- **Express 5** — underlying HTTP platform for Nest
 - **Socket.io 4** — WebSocket module
 - **BullMQ 5** + **node-cron** — Workflow Engine
-- **Jest 30** + **ts-jest** — unit tests (`tsconfig.test.json` used for test compilation)
+- **Supabase JS** — Postgres + Storage clients (service-role key)
+- **class-validator** + **class-transformer** — DTO validation via the global `ValidationPipe`
+- **Winston** — logging (`src/lib/logger`); colorized in dev, JSON in prod, silent in test
+- **Jest 30** + **ts-jest** — unit tests
 - **Prettier** — single quotes, 2-space tabs
 - **tsx** — dev server watch mode (no compilation step)
 

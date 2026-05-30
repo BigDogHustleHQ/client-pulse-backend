@@ -1,0 +1,33 @@
+meta {
+  name: Upload Object
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/storage/:bucket/objects
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+params:path {
+  bucket: 
+}
+
+body:json {
+{
+  "path": "tenants/acme/logo.png",
+  "body": "<base64-or-text-payload>",
+  "contentType": "image/png",
+  "upsert": true
+}
+}
+
+docs {
+  Uploads (or upserts) an object into the given bucket.
+}

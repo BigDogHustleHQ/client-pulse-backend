@@ -1,0 +1,23 @@
+meta {
+  name: Delete Objects
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{baseUrl}}/storage/:bucket/objects
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+params:path {
+  bucket: 
+}
+
+docs {
+  Removes one or more objects from the given bucket.
+}

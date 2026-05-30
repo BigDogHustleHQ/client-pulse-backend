@@ -1,0 +1,394 @@
+openapi: 3.0.3
+
+info:
+  title: ClientPulse Backend
+  description: >
+    Single Railway service for ClientPulse — WebSocket real-time push,
+    BullMQ workflow engine, and integration hub for third-party webhooks/OAuth.
+  version: 0.1.0
+  contact:
+    email: jabreenicholas@gmail.com
+
+servers:
+  - url: http://localhost:3001
+    description: Local
+  - url: https://clientpulse-backend-development.up.railway.app
+    description: Development (Railway)
+  - url: https://clientpulse-backend-staging.up.railway.app
+    description: Staging (Railway)
+  - url: https://clientpulse-backend.up.railway.app
+    description: Production (Railway)
+
+tags:
+  - name: Integration Hub
+    description: Incoming webhooks and OAuth flows for third-party integrations
+  - name: Dependency Health
+    description: PostgreSQL and Supabase Storage dependency checks
+  - name: Tenants
+    description: Tenant records in PostgreSQL — read and update
+  - name: Storage
+    description: Supabase Storage object writes for the media-uploads and generated-sites buckets
+
+paths:
+  /integrations/health:
+    get:
+      operationId: getIntegrationHealth
+      tags: [Integration Hub]
+      summary: Health Check
+      description: Returns 200 with `{"status":"ok"}` when the integration hub is healthy.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+              example:
+                status: ok
+
+  /integrations/webhooks/{provider}:
+    post:
+      operationId: receiveWebhook
+      tags: [Integration Hub]
+      summary: Webhook Receiver
+      description: >
+        Accepts inbound webhook payloads from third-party providers.
+        Each `provider` slug maps to an integration adapter registered in the hub.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: Integration provider slug (e.g. `stripe`, `twilio`)
+          schema:
+            type: string
+          example: stripe
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Provider-specific webhook payload
+            example:
+              event: customer.created
+              data:
+                id: cus_abc123
+      responses:
+        '200':
+          description: Webhook acknowledged
+
+  /dependencies/database/health:
+    get:
+      operationId: getDatabaseHealth
+      tags: [Dependency Health]
+      summary: Database Health Check
+      description: Verifies the Supabase PostgreSQL REST API by reading from the tenants table.
+      responses:
+        '200':
+          description: Database connection is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, now]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  now:
+                    type: string
+                    format: date-time
+              example:
+                status: ok
+                now: '2026-05-24T12:00:00.000Z'
+
+  /dependencies/storage/health:
+    get:
+      operationId: getStorageHealth
+      tags: [Dependency Health]
+      summary: Storage Health Check
+      description: Verifies the Supabase Storage service role credentials by listing available buckets.
+      responses:
+        '200':
+          description: Blob storage connection is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, buckets]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  buckets:
+                    type: array
+                    items:
+                      type: string
+              example:
+                status: ok
+                buckets:
+                  - media-uploads
+                  - generated-sites
+
+  /tenants/{id}:
+    get:
+      operationId: getTenant
+      tags: [Tenants]
+      summary: Get Tenant
+      description: Fetches a single tenant by id. Returns 404 if no tenant matches.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Tenant UUID
+          schema:
+            type: string
+            format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+      responses:
+        '200':
+          description: The tenant record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '404':
+          description: No tenant with that id
+    patch:
+      operationId: updateTenant
+      tags: [Tenants]
+      summary: Update Tenant
+      description: >
+        Partially updates a tenant. At least one of name, slug, or status must be
+        provided. Every successful update writes an audit_logs row. Returns 404 if
+        the tenant does not exist, 400 if the body is empty or status is invalid.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Tenant UUID
+          schema:
+            type: string
+            format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, suspended]
+            example:
+              name: Acme Diner
+              status: active
+      responses:
+        '200':
+          description: The updated tenant record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400':
+          description: No updatable fields, or invalid status
+        '404':
+          description: No tenant with that id
+
+  /storage/{bucket}/objects:
+    put:
+      operationId: uploadStorageObject
+      tags: [Storage]
+      summary: Upload Object
+      description: Uploads (or upserts) an object into the given bucket.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path, body]
+              properties:
+                path:
+                  type: string
+                body:
+                  type: string
+                contentType:
+                  type: string
+                upsert:
+                  type: boolean
+            example:
+              path: tenants/acme/logo.png
+              body: '<base64-or-text-payload>'
+              contentType: image/png
+              upsert: true
+      responses:
+        '200':
+          description: Object uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlobObjectSummary'
+        '400':
+          description: Unknown bucket
+    delete:
+      operationId: deleteStorageObjects
+      tags: [Storage]
+      summary: Delete Objects
+      description: Removes one or more objects from the given bucket.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paths]
+              properties:
+                paths:
+                  type: array
+                  items:
+                    type: string
+            example:
+              paths:
+                - tenants/acme/logo.png
+      responses:
+        '200':
+          description: Objects removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  removed:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Unknown bucket, or empty paths array
+    get:
+      operationId: listStorageObjects
+      tags: [Storage]
+      summary: List Objects
+      description: Lists object names in the given bucket, optionally filtered by prefix.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+        - name: prefix
+          in: query
+          required: false
+          description: Path prefix to filter by
+          schema:
+            type: string
+          example: tenants/acme/
+      responses:
+        '200':
+          description: Object names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  objects:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Unknown bucket
+
+  /storage/{bucket}/objects/signed-url:
+    post:
+      operationId: createStorageSignedUrl
+      tags: [Storage]
+      summary: Create Signed URL
+      description: Creates a time-limited signed URL for an object in the given bucket.
+      parameters:
+        - $ref: '#/components/parameters/Bucket'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [path]
+              properties:
+                path:
+                  type: string
+                expiresIn:
+                  type: integer
+                  description: Seconds until the URL expires (default 3600)
+            example:
+              path: tenants/acme/logo.png
+              expiresIn: 3600
+      responses:
+        '200':
+          description: Signed URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signedUrl:
+                    type: string
+        '400':
+          description: Unknown bucket, or missing path
+
+components:
+  parameters:
+    Bucket:
+      name: bucket
+      in: path
+      required: true
+      description: Supabase Storage bucket
+      schema:
+        type: string
+        enum: [media-uploads, generated-sites]
+      example: media-uploads
+  schemas:
+    Tenant:
+      type: object
+      required: [id, name, slug, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum: [active, suspended]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BlobObjectSummary:
+      type: object
+      required: [bucket, name, id, updatedAt]
+      properties:
+        bucket:
+          type: string
+        name:
+          type: string
+        id:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
