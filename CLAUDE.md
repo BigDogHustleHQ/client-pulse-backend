@@ -12,16 +12,18 @@ npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit (type-check src + tests, no output)
 npm run format       # Prettier format src/
 npm run format:check # check formatting without writing
-npm test             # unit tests
+npm test             # unit tests (Jest)
 npm run test:watch   # unit tests in watch mode
 npm run test:coverage # unit tests with coverage report
+npm run test:integration # Cucumber integration tests (every HTTP endpoint)
 ```
 
-To run a single test file: `npm test -- --testPathPattern=websocket`
+To run a single unit test file: `npm test -- --testPathPattern=websocket`
+To run a single feature: `npm run test:integration -- integration/features/tenants.feature`
 
 ## CI & pre-commit
 
-- **GitHub Actions** (`.github/workflows/ci.yml`) runs three jobs on every PR and on pushes to `main`: **Lint & typecheck** (`lint` + `format:check` + `typecheck`), **Unit tests & coverage** (`test:coverage`), and **Build** (`build`). The coverage gate is the `coverageThreshold` in `jest.config.ts` (100% global) — a PR that drops coverage fails the test job.
+- **GitHub Actions** (`.github/workflows/ci.yml`) runs four jobs on every PR and on pushes to `main`: **Lint & typecheck** (`lint` + `format:check` + `typecheck`), **Unit tests & coverage** (`test:coverage`), **Build** (`build`), and **Integration tests (Cucumber)** (`test:integration`). The coverage gate is the `coverageThreshold` in `jest.config.ts` (100% global) — a PR that drops coverage fails the test job.
 - **Pre-commit hook** (Husky, `.husky/pre-commit`) runs `lint-staged` (ESLint `--fix` + Prettier on staged `*.ts`) then `npm run typecheck`. Hooks install automatically via the `prepare` script on `npm install`.
 
 ## Architecture
@@ -63,10 +65,10 @@ src/
 
 ## Testing conventions
 
-- Unit test files use `.test.ts` suffix, co-located with source
-- BullMQ and node-cron are mocked in unit tests — integration with real Redis is an e2e concern
-- WebSocket connection/disconnect callbacks use `/* istanbul ignore next */` — covered by e2e
-- 100% coverage threshold enforced via `jest.config.ts`
+Two layers:
+
+- **Unit tests (Jest)** — `.test.ts` suffix, co-located with source. Mock at the service/provider boundary; 100% coverage threshold enforced via `jest.config.ts`. BullMQ and node-cron are mocked here. WebSocket connection/disconnect callbacks use `/* istanbul ignore next */`.
+- **Integration tests (Cucumber)** — live under `integration/`. `cucumber.cjs` loads `.ts` steps via `ts-node` (`tsconfig.integration.json`). They boot the **real** HTTP app (controllers → services → Postgres/BlobStorage clients) and drive every endpoint with supertest; only the Supabase network boundary is replaced by in-memory fakes (`integration/support/fakes.ts`), so no Redis/Postgres/storage is required. Layout: `features/` (Gherkin, one per controller), `steps/` (step definitions), `support/` (World, hooks, app boot, fakes). Cucumber is **not** part of the Jest coverage gate.
 
 ## Stack
 

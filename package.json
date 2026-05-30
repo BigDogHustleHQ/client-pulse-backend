@@ -7,13 +7,14 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit -p tsconfig.test.json",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"integration/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.integration.json",
+    "format": "prettier --write \"src/**/*.ts\" \"integration/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"integration/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:integration": "cucumber-js",
     "sync-api-docs": "node scripts/sync-api-docs.mjs",
     "prepare": "husky"
   },
@@ -46,6 +47,7 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.9.0",
     "@eslint/js": "^10.0.1",
     "@nestjs/testing": "^11.1.23",
     "@types/express": "^5.0.6",

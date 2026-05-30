@@ -1,9 +1,10 @@
 name: CI
 
-# Runs on every PR and on pushes to main, mirroring SID-62's "three jobs run on
-# every PR" gate. The frontend-only legs from the original issue (Storybook,
+# Runs on every PR and on pushes to main, mirroring SID-62's "jobs run on every
+# PR" gate. The frontend-only legs from the original issue (Storybook,
 # Playwright, axe-core, Chromatic) don't apply to this NestJS backend; the
-# backend equivalents are lint/typecheck, unit tests + coverage, and build.
+# backend equivalents are lint/typecheck, unit tests + coverage, build, and
+# Cucumber integration tests that exercise every HTTP endpoint.
 on:
   pull_request:
   push:
@@ -64,3 +65,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+  integration:
+    name: Integration tests (Cucumber)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Cucumber boots the real HTTP app with the Supabase boundary faked
+      # in-memory, so no Redis/Postgres/storage services are needed.
+      - run: npm run test:integration
