@@ -7,7 +7,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { createModuleLogger } from '../../lib/logger';
+import { createModuleLogger } from '../../lib/logger/logger';
 
 const log = createModuleLogger('integration-hub');
 

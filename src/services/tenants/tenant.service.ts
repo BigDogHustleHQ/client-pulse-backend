@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PostgresClient } from '../postgres/postgres';
-import type { Tenant, UpdateTenantInput } from './types';
-import type { TenantRow } from '../postgres/types';
+import type { Tenant, UpdateTenantInput } from './tenant.types';
+import type { TenantRow } from '../postgres/postgres.types';
 
 @Injectable()
 export class TenantService {

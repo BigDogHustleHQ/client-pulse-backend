@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './server';
-import { createModuleLogger } from './lib/logger';
+import { createModuleLogger } from './lib/logger/logger';
 
 const log = createModuleLogger('server');
 const PORT = process.env.PORT ?? 3001;

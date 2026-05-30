@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { WorkflowEngineService } from './index';
+import { WorkflowEngineService } from './workflow-engine.module';
 
 jest.mock('bullmq', () => ({
   Queue: jest.fn().mockImplementation(() => ({
@@ -34,6 +34,7 @@ describe('WorkflowEngineService', () => {
   it('schedules a cron tick on init', () => {
     const service = new WorkflowEngineService();
     service.onModuleInit();
+
     expect(cron.schedule).toHaveBeenCalledWith(
       '* * * * *',
       expect.any(Function),
@@ -43,9 +44,11 @@ describe('WorkflowEngineService', () => {
   it('stops tasks and closes queue and worker on destroy', async () => {
     const task = { stop: jest.fn() };
     (cron.schedule as jest.Mock).mockReturnValueOnce(task);
+    
     const service = new WorkflowEngineService();
     service.onModuleInit();
     await service.onModuleDestroy();
+
     expect(task.stop).toHaveBeenCalled();
     expect(service.queue.close).toHaveBeenCalled();
     expect(service.worker.close).toHaveBeenCalled();

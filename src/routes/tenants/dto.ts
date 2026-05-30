@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { TenantStatus } from '../../types/enums/tenant';
-import { HasAtLeastOneField } from '../../lib/validation/has-at-least-one-field';
+import { HasAtLeastOneField } from '../../utils/validation/validation.util';
 
 @HasAtLeastOneField(['name', 'slug', 'status'])
 export class UpdateTenantDto {

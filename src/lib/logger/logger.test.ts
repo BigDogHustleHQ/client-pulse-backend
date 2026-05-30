@@ -7,13 +7,14 @@ afterEach(() => {
 
 describe('logger module', () => {
   it('is silent in test environment', async () => {
-    const { logger } = await import('./index');
+    const { logger } = await import('./logger');
     expect(logger.silent).toBeTruthy();
   });
 
   it('createModuleLogger returns a distinct child logger', async () => {
-    const { logger, createModuleLogger } = await import('./index');
+    const { logger, createModuleLogger } = await import('./logger');
     const child = createModuleLogger('hub');
+
     expect(child).toBeDefined();
     expect(child).not.toEqual(logger);
   });
@@ -25,7 +26,7 @@ describe('logger module', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
     try {
-      const { logger } = await import('./index');
+      const { logger } = await import('./logger');
       expect(logger.silent).toBeFalsy();
 
       // Covers: mod defined branch in printf
@@ -44,7 +45,7 @@ describe('logger module', () => {
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
     try {
-      const { logger } = await import('./index');
+      const { logger } = await import('./logger');
       expect(logger.silent).toBeFalsy();
       logger.info('prod-message');
     } finally {

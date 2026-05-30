@@ -1,7 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { IntegrationHubController } from './index';
+import { IntegrationHubController } from './integration-hub.module';
 
 describe('Integration Hub controller', () => {
   let app: INestApplication;
