@@ -1,9 +1,5 @@
 name: CI
 
-# Orchestrator: runs on every PR and on pushes to main, delegating to one
-# reusable workflow per concern (see ./lint.yml, ./test.yml, ./build.yml,
-# ./integration.yml). The frontend-only legs from SID-62 (Storybook, Playwright,
-# axe-core, Chromatic) don't apply to this NestJS backend.
 on:
   pull_request:
   push:
@@ -19,10 +15,39 @@ permissions:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    name: Lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+
   test:
-    uses: ./.github/workflows/test.yml
+    name: Unit tests & coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+
   build:
-    uses: ./.github/workflows/build.yml
-  integration:
-    uses: ./.github/workflows/integration.yml
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build

@@ -9,23 +9,20 @@ npm run dev              # dev server, watch mode (port 3001)
 npm run build            # compile TypeScript to dist/
 npm start                # run production build
 npm run lint             # ESLint
-npm run typecheck        # tsc --noEmit (src + tests)
+npm run typecheck        # type-check src + tests
 npm run format           # Prettier write
 npm run format:check     # Prettier check
 npm test                 # unit tests (Jest)
 npm run test:coverage    # unit tests + coverage gate
-npm run test:integration # Cucumber integration tests (every HTTP endpoint)
 ```
 
 Single unit file: `npm test -- --testPathPattern=websocket`.
-Single feature: `npm run test:integration -- integration/features/tenants.feature`.
 
-## Detailed guidance
+## CI and hooks
 
-Project rules live in `.claude/rules/` and auto-load by path:
+GitHub Actions (`.github/workflows/ci.yml`) runs lint/format/typecheck, unit
+tests with coverage, and build on every PR and push to `main`. The coverage
+gate is enforced by `coverageThreshold` in `jest.config.ts`.
 
-- `architecture.md` — layout, boot flow, module responsibilities (`src/**`)
-- `stack.md` — libraries and versions (`src/**`, `integration/**`)
-- `types.md` — type organization (`src/**`)
-- `testing.md` — unit + integration conventions (test/config files)
-- `ci.md` — CI jobs + pre-commit hooks (workflow/config files)
+The Husky pre-commit hook runs `lint-staged` on staged TypeScript files, then
+`npm run typecheck`.
