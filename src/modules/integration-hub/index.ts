@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import { createModuleLogger } from '../logger';
+
+const log = createModuleLogger('integration-hub');
 
 export function createIntegrationHubRouter(): Router {
   const router = Router();
@@ -10,7 +13,7 @@ export function createIntegrationHubRouter(): Router {
   // Webhook receiver — individual integration adapters will register here
   router.post('/webhooks/:provider', (req, res) => {
     const { provider } = req.params;
-    console.log(`[integration-hub] webhook received from ${provider}`);
+    log.info(`webhook received from ${provider}`);
     res.sendStatus(200);
   });
 

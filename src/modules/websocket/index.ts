@@ -1,5 +1,8 @@
 import { Server as HttpServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
+import { createModuleLogger } from '../logger';
+
+const log = createModuleLogger('websocket');
 
 export function createWebSocketModule(httpServer: HttpServer): SocketServer {
   const io = new SocketServer(httpServer, {
@@ -8,10 +11,10 @@ export function createWebSocketModule(httpServer: HttpServer): SocketServer {
 
   /* istanbul ignore next */
   io.on('connection', (socket) => {
-    console.log(`[websocket] client connected: ${socket.id}`);
+    log.info(`client connected: ${socket.id}`);
 
     socket.on('disconnect', () => {
-      console.log(`[websocket] client disconnected: ${socket.id}`);
+      log.info(`client disconnected: ${socket.id}`);
     });
   });
 
