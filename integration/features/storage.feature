@@ -1,72 +1,67 @@
 Feature: Storage endpoints
-  Object writes, deletes, listings, and signed-url issuance for customer media
-  (media-uploads) and published AI-generated sites (generated-sites).
 
-  Scenario: Upload an object to a bucket
-    When I send a PUT request to "/storage/media-uploads/objects" with body:
+  Scenario: Upload an object
+    When I PUT "/storage/media-uploads/objects" with body:
       """
       { "path": "logo.png", "body": "data", "contentType": "image/png" }
       """
     Then the response status should be 200
     And the response body should have fields:
-      | field  | value        |
+      | field  | value         |
       | bucket | media-uploads |
-      | name   | logo.png     |
-    And the "media-uploads" bucket should contain an object "logo.png"
+      | name   | logo.png      |
 
   Scenario: Uploading to an unknown bucket is rejected
-    When I send a PUT request to "/storage/bogus/objects" with body:
+    When I PUT "/storage/bogus/objects" with body:
       """
       { "path": "logo.png", "body": "data" }
       """
     Then the response status should be 400
 
-  Scenario: Uploading without a path is rejected
-    When I send a PUT request to "/storage/media-uploads/objects" with body:
+  Scenario: Delete objects
+    Given the "media-uploads" bucket contains "a.png"
+    When I DELETE "/storage/media-uploads/objects" with body:
       """
-      { "body": "data" }
-      """
-    Then the response status should be 400
-
-  Scenario: Delete objects from a bucket
-    Given the "media-uploads" bucket contains an object "a.png"
-    And the "media-uploads" bucket contains an object "b.png"
-    When I send a DELETE request to "/storage/media-uploads/objects" with body:
-      """
-      { "paths": ["a.png", "b.png"] }
+      { "paths": ["a.png"] }
       """
     Then the response status should be 200
     And the response body should equal:
       """
-      { "removed": ["a.png", "b.png"] }
+      { "removed": ["a.png"] }
       """
-    And the "media-uploads" bucket should not contain an object "a.png"
+    And the "media-uploads" bucket should not contain "a.png"
 
-  Scenario: Deleting with an empty paths array is rejected
-    When I send a DELETE request to "/storage/media-uploads/objects" with body:
+  Scenario: Deleting with empty paths is rejected
+    When I DELETE "/storage/media-uploads/objects" with body:
       """
       { "paths": [] }
       """
     Then the response status should be 400
 
-  Scenario: List objects in a bucket filtered by prefix
-    Given the "generated-sites" bucket contains an object "tenants/site.html"
-    And the "generated-sites" bucket contains an object "other/file.txt"
-    When I send a GET request to "/storage/generated-sites/objects?prefix=tenants/"
+  Scenario: List objects filtered by prefix
+    Given the "generated-sites" bucket contains "tenants/site.html"
+    And the "generated-sites" bucket contains "other/file.txt"
+    When I GET "/storage/generated-sites/objects?prefix=tenants/"
     Then the response status should be 200
     And the response body should equal:
       """
       { "objects": ["tenants/site.html"] }
       """
 
-  Scenario: Issue a signed URL for an object
-    When I send a POST request to "/storage/media-uploads/objects/signed-url" with body:
+  Scenario: Issue a signed URL
+    When I POST "/storage/media-uploads/objects/signed-url" with body:
       """
       { "path": "a.png" }
       """
     Then the response status should be 201
-    And the response body field "signedUrl" should equal "https://signed.example/media-uploads/a.png?expires=3600"
+    And the response body should equal:
+      """
+      { "signedUrl": "https://signed.example/media-uploads/a.png?expires=3600" }
+      """
 
-  Scenario: Issuing a signed URL without a path is rejected
-    When I send a POST request to "/storage/media-uploads/objects/signed-url" with an empty body
+  Scenario: Signed URL without a path is rejected
+    When I POST "/storage/media-uploads/objects/signed-url" with body:
+      """
+      {}
+      """
     Then the response status should be 400

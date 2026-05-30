@@ -1,33 +1,28 @@
-/**
- * Cucumber World: per-scenario state shared across step definitions.
- *
- * Each scenario gets a fresh app boot with fresh in-memory fakes (see hooks.ts),
- * so scenarios are fully isolated.
- */
-import {
-  setWorldConstructor,
-  World,
-  type IWorldOptions,
-} from '@cucumber/cucumber';
+// Cucumber World + per-scenario lifecycle. Each scenario gets a fresh app and
+// fresh fakes, so scenarios are isolated.
+import { setWorldConstructor, World, Before, After } from '@cucumber/cucumber';
 import type { INestApplication } from '@nestjs/common';
 import type { Response } from 'supertest';
-import { createFakes, type Fakes } from './fakes';
+import { createApp } from './app';
+import { Fakes } from './fakes';
 
 export class IntegrationWorld extends World {
-  app?: INestApplication;
-  fakes: Fakes = createFakes();
+  app!: INestApplication;
+  fakes = new Fakes();
   response?: Response;
 
-  constructor(options: IWorldOptions) {
-    super(options);
-  }
-
-  get server(): ReturnType<INestApplication['getHttpServer']> {
-    if (!this.app) {
-      throw new Error('App has not been started for this scenario');
-    }
+  get server() {
     return this.app.getHttpServer();
   }
 }
 
 setWorldConstructor(IntegrationWorld);
+
+Before(async function (this: IntegrationWorld) {
+  this.fakes = new Fakes();
+  this.app = await createApp(this.fakes);
+});
+
+After(async function (this: IntegrationWorld) {
+  await this.app?.close();
+});
