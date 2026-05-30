@@ -1,21 +1,35 @@
-import { Router } from 'express';
-import { createModuleLogger } from '../logger';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Module,
+  Param,
+  Post,
+} from '@nestjs/common';
+import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('integration-hub');
 
-export function createIntegrationHubRouter(): Router {
-  const router = Router();
+@Controller('integrations')
+export class IntegrationHubController {
+  // Uptime probe for the integration hub — lets monitoring/Railway confirm the
+  // service is ready to accept third-party events before routing traffic to it.
+  @Get('health')
+  health(): { status: string } {
+    return { status: 'ok' };
+  }
 
-  router.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
-  });
-
-  // Webhook receiver — individual integration adapters will register here
-  router.post('/webhooks/:provider', (req, res) => {
-    const { provider } = req.params;
+  // Inbound webhook intake from connected providers (Stripe, Twilio, OpenTable,
+  // Square, Yelp, …). Each provider's events — payments, reservations, reviews,
+  // messages — arrive here to trigger ClientPulse automations. Adapters per
+  // provider slug will register here.
+  @Post('webhooks/:provider')
+  @HttpCode(HttpStatus.OK)
+  webhook(@Param('provider') provider: string): void {
     log.info(`webhook received from ${provider}`);
-    res.sendStatus(200);
-  });
-
-  return router;
+  }
 }
+
+@Module({ controllers: [IntegrationHubController] })
+export class IntegrationHubModule {}

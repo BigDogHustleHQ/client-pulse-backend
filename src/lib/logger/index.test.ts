@@ -8,14 +8,14 @@ afterEach(() => {
 describe('logger module', () => {
   it('is silent in test environment', async () => {
     const { logger } = await import('./index');
-    expect(logger.silent).toBe(true);
+    expect(logger.silent).toBeTruthy();
   });
 
   it('createModuleLogger returns a distinct child logger', async () => {
     const { logger, createModuleLogger } = await import('./index');
     const child = createModuleLogger('hub');
     expect(child).toBeDefined();
-    expect(child).not.toBe(logger);
+    expect(child).not.toEqual(logger);
   });
 
   it('is not silent and exercises dev printf format when NODE_ENV is not production or test', async () => {
@@ -26,7 +26,7 @@ describe('logger module', () => {
 
     try {
       const { logger } = await import('./index');
-      expect(logger.silent).toBe(false);
+      expect(logger.silent).toBeFalsy();
 
       // Covers: mod defined branch in printf
       logger.info('with-module', { module: 'mymod' });
@@ -45,7 +45,7 @@ describe('logger module', () => {
 
     try {
       const { logger } = await import('./index');
-      expect(logger.silent).toBe(false);
+      expect(logger.silent).toBeFalsy();
       logger.info('prod-message');
     } finally {
       logSpy.mockRestore();

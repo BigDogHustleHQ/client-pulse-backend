@@ -1,11 +1,16 @@
-import { createServer } from 'http';
-import { createWebSocketModule } from './index';
+import { Socket } from 'socket.io';
+import { WebsocketGateway } from './index';
 
-describe('WebSocket module', () => {
-  it('attaches a Socket.io server to the http server', () => {
-    const httpServer = createServer();
-    const io = createWebSocketModule(httpServer);
-    expect(io).toBeDefined();
-    io.close();
+describe('WebsocketGateway', () => {
+  const client = { id: 'socket-1' } as unknown as Socket;
+
+  it('handles a client connection without throwing', () => {
+    const gateway = new WebsocketGateway();
+    expect(() => gateway.handleConnection(client)).not.toThrow();
+  });
+
+  it('handles a client disconnection without throwing', () => {
+    const gateway = new WebsocketGateway();
+    expect(() => gateway.handleDisconnect(client)).not.toThrow();
   });
 });

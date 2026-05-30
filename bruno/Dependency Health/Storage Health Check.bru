@@ -1,0 +1,24 @@
+meta {
+  name: Storage Health Check
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/dependencies/storage/health
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq ok
+}
+
+docs {
+  Verifies the Supabase Storage service role credentials by listing available buckets.
+}

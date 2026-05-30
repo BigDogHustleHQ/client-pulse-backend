@@ -1,6 +1,12 @@
+import {
+  Injectable,
+  Module,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Queue, Worker } from 'bullmq';
 import cron, { ScheduledTask } from 'node-cron';
-import { createModuleLogger } from '../logger';
+import { createModuleLogger } from '../../lib/logger';
 
 const log = createModuleLogger('workflow-engine');
 
@@ -9,20 +15,39 @@ const connection = {
   port: Number(process.env.REDIS_PORT ?? 6379),
 };
 
-export const workflowQueue = new Queue('workflows', { connection });
+@Injectable()
+export class WorkflowEngineService implements OnModuleInit, OnModuleDestroy {
+  readonly queue = new Queue('workflows', { connection });
 
-export const workflowWorker = new Worker(
-  'workflows',
-  /* istanbul ignore next */
-  async (job) => {
-    log.info(`processing job ${job.id}: ${job.name}`);
-  },
-  { connection },
-);
+  readonly worker = new Worker(
+    'workflows',
+    /* istanbul ignore next */
+    async (job) => {
+      log.info(`processing job ${job.id}: ${job.name}`);
+    },
+    { connection },
+  );
 
-export function registerCronJobs(): ScheduledTask[] {
-  const tick = cron.schedule('* * * * *', /* istanbul ignore next */ () => {
-    log.debug('cron tick');
-  });
-  return [tick];
+  private tasks: ScheduledTask[] = [];
+
+  onModuleInit(): void {
+    const tick = cron.schedule(
+      '* * * * *',
+      /* istanbul ignore next */ () => {
+        log.debug('cron tick');
+      },
+    );
+    this.tasks = [tick];
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    for (const task of this.tasks) {
+      task.stop();
+    }
+    await this.queue.close();
+    await this.worker.close();
+  }
 }
+
+@Module({ providers: [WorkflowEngineService] })
+export class WorkflowEngineModule {}

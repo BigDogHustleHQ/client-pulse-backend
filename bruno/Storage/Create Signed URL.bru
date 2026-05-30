@@ -1,0 +1,31 @@
+meta {
+  name: Create Signed URL
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/storage/:bucket/objects/signed-url
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+params:path {
+  bucket: 
+}
+
+body:json {
+{
+  "path": "tenants/acme/logo.png",
+  "expiresIn": 3600
+}
+}
+
+docs {
+  Creates a time-limited signed URL for an object in the given bucket.
+}
