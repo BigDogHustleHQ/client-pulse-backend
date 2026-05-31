@@ -8,9 +8,19 @@ const mockVerifyToken = verifyToken as jest.MockedFunction<typeof verifyToken>;
 
 function makeContext(authorization?: string): {
   ctx: ExecutionContext;
-  request: { headers: Record<string, string>; auth: unknown; method: string; path: string };
+  request: {
+    headers: Record<string, string>;
+    auth: unknown;
+    method: string;
+    path: string;
+  };
 } {
-  const request: { headers: Record<string, string>; auth: unknown; method: string; path: string } = {
+  const request: {
+    headers: Record<string, string>;
+    auth: unknown;
+    method: string;
+    path: string;
+  } = {
     headers: authorization ? { authorization } : {},
     auth: undefined,
     method: 'GET',

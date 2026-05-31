@@ -12,7 +12,14 @@ function makeContext(
   queryToken?: string,
 ): {
   ctx: ExecutionContext;
-  socket: { id: string; data: Record<string, unknown>; handshake: { auth: Record<string, unknown>; query: Record<string, unknown> } };
+  socket: {
+    id: string;
+    data: Record<string, unknown>;
+    handshake: {
+      auth: Record<string, unknown>;
+      query: Record<string, unknown>;
+    };
+  };
 } {
   const socket = {
     id: 'socket-1',
