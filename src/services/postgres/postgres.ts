@@ -5,7 +5,7 @@ import type {
   PostgresClientOptions,
   SupabaseDatabaseAdapter,
   TenantRow,
-} from './types';
+} from './postgres.types';
 
 @Injectable()
 export class PostgresClient {

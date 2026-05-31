@@ -12,11 +12,14 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { BlobStorageClient } from '../../services/blob-storage/blob-storage';
 import { StorageBucket } from '../../types/enums/storage';
 import type { BlobObjectSummary } from '../../types';
-import { STORAGE_WRITER, type StorageWriter } from './types';
+import { AuthModule } from '../../lib/auth/auth.module';
+import { ClerkAuthGuard } from '../../lib/auth/clerk-auth.guard';
+import { STORAGE_WRITER, type StorageWriter } from './storage.types';
 import {
   StorageCreateSignedUrlDto,
   StorageDeleteObjectsDto,
@@ -38,15 +41,13 @@ const storageWriter: StorageWriter = {
     getClient().createSignedUrl(b, p, e),
 };
 
+@UseGuards(ClerkAuthGuard)
 @Controller('storage')
 export class StorageController {
   constructor(@Inject(STORAGE_WRITER) private readonly writer: StorageWriter) {}
 
   // Store or replace a customer file: photo/logo uploads (media-uploads) or a
   // published AI-generated website build (generated-sites).
-  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
-  // which bypasses RLS. Add tenant auth + path scoping before this is
-  // internet-reachable.
   @Put(':bucket/objects')
   @HttpCode(HttpStatus.OK)
   upload(
@@ -58,9 +59,6 @@ export class StorageController {
 
   // Remove customer files — e.g. cleaning up replaced media or tearing down a
   // generated site when a customer offboards.
-  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
-  // which bypasses RLS. Add tenant auth + path scoping before this is
-  // internet-reachable.
   @Delete(':bucket/objects')
   async remove(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
@@ -71,9 +69,6 @@ export class StorageController {
 
   // Browse a customer's stored files — powers the dashboard media library and
   // the generated-site file listing.
-  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
-  // which bypasses RLS. Add tenant auth + path scoping before this is
-  // internet-reachable.
   @Get(':bucket/objects')
   async list(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
@@ -85,9 +80,6 @@ export class StorageController {
   // Issue a short-lived signed download link so the frontend can fetch a
   // private customer file straight from storage without proxying bytes
   // through this service.
-  // TODO(SID-61): unauthenticated and backed by the Supabase service-role key,
-  // which bypasses RLS. Add tenant auth + path scoping before this is
-  // internet-reachable.
   @Post(':bucket/objects/signed-url')
   signedUrl(
     @Param('bucket', new ParseEnumPipe(StorageBucket)) bucket: StorageBucket,
@@ -102,6 +94,7 @@ export class StorageController {
 }
 
 @Module({
+  imports: [AuthModule],
   controllers: [StorageController],
   providers: [
     {

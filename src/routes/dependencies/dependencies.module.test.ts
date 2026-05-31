@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { HttpStatus, type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { DependenciesModule } from './index';
-import { BLOB_STORAGE_HEALTH, POSTGRES_HEALTH } from './types';
+import { DependenciesModule } from './dependencies.module';
+import { BLOB_STORAGE_HEALTH, POSTGRES_HEALTH } from './dependencies.types';
 
 describe('Dependencies controller', () => {
   let app: INestApplication;

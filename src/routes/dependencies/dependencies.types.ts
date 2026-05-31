@@ -1,5 +1,5 @@
-import type { DatabaseHealth } from '../../services/postgres/types';
-import type { BlobStorageHealth } from '../../services/blob-storage/types';
+import type { DatabaseHealth } from '../../services/postgres/postgres.types';
+import type { BlobStorageHealth } from '../../services/blob-storage/blob-storage.types';
 
 export interface DependencyHealthCheck<T> {
   health(): Promise<T>;

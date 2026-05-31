@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
@@ -29,6 +29,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@clerk/backend": "^3.4.14",
     "@nestjs/common": "^11.1.23",
     "@nestjs/core": "^11.1.23",
     "@nestjs/platform-express": "^11.1.23",

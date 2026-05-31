@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
-import { createModuleLogger } from '../../lib/logger';
+import { createModuleLogger } from '../../lib/logger/logger';
 import type { BlobObjectSummary } from '../../types';
 import type {
   BlobStorageClientOptions,
   BlobStorageHealth,
   UploadBlobInput,
-} from './types';
+} from './blob-storage.types';
 
 const log = createModuleLogger('blob-storage');
 
