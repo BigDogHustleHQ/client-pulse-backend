@@ -44,7 +44,7 @@ describe('WorkflowEngineService', () => {
   it('stops tasks and closes queue and worker on destroy', async () => {
     const task = { stop: jest.fn() };
     (cron.schedule as jest.Mock).mockReturnValueOnce(task);
-    
+
     const service = new WorkflowEngineService();
     service.onModuleInit();
     await service.onModuleDestroy();
