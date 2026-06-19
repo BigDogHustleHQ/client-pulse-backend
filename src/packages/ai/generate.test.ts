@@ -418,4 +418,49 @@ describe('generate', () => {
       ),
     ).rejects.toThrow('LiteLLM response did not include message content');
   });
+
+  it('times out a hung LiteLLM call', async () => {
+    const hangingFetch = jest.fn<Promise<Response>, Parameters<typeof fetch>>(
+      (_url, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () =>
+            reject(new Error('aborted by signal')),
+          );
+        }),
+    );
+
+    await expect(
+      generate(
+        {
+          tenant: 'tenant_123',
+          feature: 'vendor-risk-summary',
+          promptVersion: 'v1',
+          input: { vendor: 'Acme' },
+          outputSchema,
+        },
+        { fetch: hangingFetch, timeoutMs: 5 },
+      ),
+    ).rejects.toThrow(/timed out after 5ms/);
+  });
+
+  it('rethrows a non-timeout fetch error unchanged', async () => {
+    const fetchMock = jest.fn<Promise<Response>, Parameters<typeof fetch>>(
+      async () => {
+        throw new Error('socket hang up');
+      },
+    );
+
+    await expect(
+      generate(
+        {
+          tenant: 'tenant_123',
+          feature: 'vendor-risk-summary',
+          promptVersion: 'v1',
+          input: { vendor: 'Acme' },
+          outputSchema,
+        },
+        { fetch: fetchMock },
+      ),
+    ).rejects.toThrow('socket hang up');
+  });
 });

@@ -76,11 +76,16 @@ interface GenerateOptions {
   fetch?: typeof fetch;
   baseUrl?: string;
   apiKey?: string;
+  timeoutMs?: number;
 }
 
 const DEFAULT_MODEL = 'anthropic/claude-sonnet-4-6';
 const FALLBACK_MODEL = 'anthropic/claude-haiku-4-5';
 const ESCALATION_MODEL = 'anthropic/claude-opus-4-7';
+
+// Client-side backstop so a hung LiteLLM/provider socket can't pin a request
+// open forever. LiteLLM also enforces its own timeout; this is the local guard.
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 const modelTierFor = (model: string): AiModelTier => {
   if (model.includes('haiku')) {
@@ -131,18 +136,36 @@ const parseJsonOutput = (content: string): unknown => {
 const callLiteLlm = async (
   request: LiteLlmRequestBody,
   tenant: string,
-  options: Required<Pick<GenerateOptions, 'fetch' | 'baseUrl'>> &
+  options: Required<Pick<GenerateOptions, 'fetch' | 'baseUrl' | 'timeoutMs'>> &
     Pick<GenerateOptions, 'apiKey'>,
 ): Promise<Response> => {
-  return options.fetch(`${options.baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${buildVirtualKey(tenant, options.apiKey)}`,
-      'content-type': 'application/json',
-      'x-clientpulse-tenant': tenant,
-    },
-    body: JSON.stringify(request),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs);
+
+  try {
+    return await options.fetch(`${options.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${buildVirtualKey(tenant, options.apiKey)}`,
+        'content-type': 'application/json',
+        'x-clientpulse-tenant': tenant,
+      },
+      body: JSON.stringify(request),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        `LiteLLM request timed out after ${options.timeoutMs}ms`,
+        {
+          cause: error,
+        },
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 const buildRequestBody = <TSchema extends z.ZodType>(
@@ -195,13 +218,14 @@ export async function generate<TSchema extends z.ZodType>(
   const fetcher = options.fetch ?? fetch;
   const baseUrl =
     options.baseUrl ?? process.env.LITELLM_BASE_URL ?? 'http://localhost:4000';
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const firstModel =
     params.complexity === 'high' ? ESCALATION_MODEL : DEFAULT_MODEL;
 
   const firstResponse = await callLiteLlm(
     buildRequestBody(params, firstModel),
     params.tenant,
-    { fetch: fetcher, baseUrl, apiKey: options.apiKey },
+    { fetch: fetcher, baseUrl, apiKey: options.apiKey, timeoutMs },
   );
 
   let response = firstResponse;
@@ -217,7 +241,7 @@ export async function generate<TSchema extends z.ZodType>(
     response = await callLiteLlm(
       buildRequestBody(params, FALLBACK_MODEL),
       params.tenant,
-      { fetch: fetcher, baseUrl, apiKey: options.apiKey },
+      { fetch: fetcher, baseUrl, apiKey: options.apiKey, timeoutMs },
     );
   }
 
