@@ -5,6 +5,7 @@ import { IntegrationHubModule } from './modules/integration-hub/integration-hub.
 import { DependenciesModule } from './routes/dependencies/dependencies.module';
 import { TenantsModule } from './routes/tenants/tenants.module';
 import { StorageModule } from './routes/storage/storage.module';
+import { AiModule } from './routes/ai/ai.module';
 import { AuthModule } from './lib/auth/auth.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { AuthModule } from './lib/auth/auth.module';
     DependenciesModule,
     TenantsModule,
     StorageModule,
+    AiModule,
   ],
 })
 export class AppModule {}
