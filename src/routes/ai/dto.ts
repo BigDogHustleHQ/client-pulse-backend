@@ -18,7 +18,7 @@ export class AiGenerateDto {
 
   @IsString()
   @IsNotEmpty()
-  prompt_version!: string;
+  promptVersion!: string;
 
   @IsObject()
   input!: Record<string, unknown>;

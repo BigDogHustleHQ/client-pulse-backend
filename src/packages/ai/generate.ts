@@ -6,9 +6,9 @@ export type AiModelTier = 'haiku' | 'sonnet' | 'opus';
 export interface AiGenerateInput<TSchema extends z.ZodType> {
   tenant: string;
   feature: string;
-  prompt_version: string;
+  promptVersion: string;
   input: unknown;
-  output_schema: TSchema;
+  outputSchema: TSchema;
   complexity?: AiComplexity;
   system?: string;
 }
@@ -16,17 +16,17 @@ export interface AiGenerateInput<TSchema extends z.ZodType> {
 export interface AiGenerateMetadata {
   tenant: string;
   feature: string;
-  prompt_version: string;
+  promptVersion: string;
   model: string;
-  model_tier: AiModelTier;
+  modelTier: AiModelTier;
   provider: 'litellm';
   downgraded: boolean;
-  cache_control: 'ephemeral';
-  request_id?: string;
+  cacheControl: 'ephemeral';
+  requestId?: string;
   usage?: {
-    input_tokens?: number;
-    output_tokens?: number;
-    total_tokens?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
   };
 }
 
@@ -53,7 +53,7 @@ interface LiteLlmRequestBody {
   metadata: {
     tenant: string;
     feature: string;
-    prompt_version: string;
+    promptVersion: string;
   };
 }
 
@@ -168,7 +168,7 @@ const buildRequestBody = <TSchema extends z.ZodType>(
       content: JSON.stringify({
         tenant: params.tenant,
         feature: params.feature,
-        prompt_version: params.prompt_version,
+        promptVersion: params.promptVersion,
         input: params.input,
       }),
     },
@@ -177,7 +177,7 @@ const buildRequestBody = <TSchema extends z.ZodType>(
   metadata: {
     tenant: params.tenant,
     feature: params.feature,
-    prompt_version: params.prompt_version,
+    promptVersion: params.promptVersion,
   },
 });
 
@@ -231,7 +231,7 @@ export async function generate<TSchema extends z.ZodType>(
     throw new Error('LiteLLM response did not include message content');
   }
 
-  const output = params.output_schema.parse(parseJsonOutput(content));
+  const output = params.outputSchema.parse(parseJsonOutput(content));
   const usedModel = payload.model ?? model;
 
   return {
@@ -239,18 +239,18 @@ export async function generate<TSchema extends z.ZodType>(
     metadata: {
       tenant: params.tenant,
       feature: params.feature,
-      prompt_version: params.prompt_version,
+      promptVersion: params.promptVersion,
       model: usedModel,
-      model_tier: modelTierFor(usedModel),
+      modelTier: modelTierFor(usedModel),
       provider: 'litellm',
       downgraded,
-      cache_control: 'ephemeral',
-      request_id: payload.id,
+      cacheControl: 'ephemeral',
+      requestId: payload.id,
       usage: payload.usage
         ? {
-            input_tokens: payload.usage.prompt_tokens,
-            output_tokens: payload.usage.completion_tokens,
-            total_tokens: payload.usage.total_tokens,
+            inputTokens: payload.usage.prompt_tokens,
+            outputTokens: payload.usage.completion_tokens,
+            totalTokens: payload.usage.total_tokens,
           }
         : undefined,
     },

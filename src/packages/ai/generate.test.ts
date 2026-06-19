@@ -59,9 +59,9 @@ describe('generate', () => {
       {
         tenant: 'tenant_123',
         feature: 'vendor-risk-summary',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { vendor: 'Acme' },
-        output_schema: outputSchema,
+        outputSchema: outputSchema,
       },
       {
         fetch: fetchMock,
@@ -74,17 +74,17 @@ describe('generate', () => {
     expect(result.metadata).toMatchObject({
       tenant: 'tenant_123',
       feature: 'vendor-risk-summary',
-      prompt_version: 'v1',
+      promptVersion: 'v1',
       model: 'anthropic/claude-sonnet-4-6',
-      model_tier: 'sonnet',
+      modelTier: 'sonnet',
       provider: 'litellm',
       downgraded: false,
-      cache_control: 'ephemeral',
-      request_id: 'chatcmpl_test',
+      cacheControl: 'ephemeral',
+      requestId: 'chatcmpl_test',
       usage: {
-        input_tokens: 12,
-        output_tokens: 8,
-        total_tokens: 20,
+        inputTokens: 12,
+        outputTokens: 8,
+        totalTokens: 20,
       },
     });
 
@@ -104,7 +104,7 @@ describe('generate', () => {
       metadata: {
         tenant: 'tenant_123',
         feature: 'vendor-risk-summary',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
       },
     });
   });
@@ -124,14 +124,14 @@ describe('generate', () => {
       {
         tenant: 'tenant_123',
         feature: 'vendor-risk-summary',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { vendor: 'Acme' },
-        output_schema: outputSchema,
+        outputSchema: outputSchema,
       },
       { fetch: fetchMock },
     );
 
-    expect(result.metadata.model_tier).toBe('haiku');
+    expect(result.metadata.modelTier).toBe('haiku');
     expect(result.metadata.downgraded).toBe(true);
     expect(requestBodyAt(fetchMock, 1).model).toBe(
       'anthropic/claude-haiku-4-5',
@@ -155,9 +155,9 @@ describe('generate', () => {
       {
         tenant: 'tenant_123',
         feature: 'vendor-risk-summary',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { vendor: 'Acme' },
-        output_schema: outputSchema,
+        outputSchema: outputSchema,
       },
       { fetch: fetchMock },
     );
@@ -192,15 +192,15 @@ describe('generate', () => {
     const result = await generate({
       tenant: 'tenant_123',
       feature: 'vendor-risk-summary',
-      prompt_version: 'v1',
+      promptVersion: 'v1',
       input: { vendor: 'Acme' },
       system: 'Return a compact JSON risk summary.',
-      output_schema: outputSchema,
+      outputSchema: outputSchema,
     });
 
     expect(result.metadata).toMatchObject({
       model: 'anthropic/claude-sonnet-4-6',
-      model_tier: 'sonnet',
+      modelTier: 'sonnet',
       usage: undefined,
     });
     expect(fetchMock).toHaveBeenCalledWith(
@@ -234,9 +234,9 @@ describe('generate', () => {
       {
         tenant: 'tenant_123',
         feature: 'vendor-risk-summary',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { vendor: 'Acme' },
-        output_schema: outputSchema,
+        outputSchema: outputSchema,
       },
       { fetch: fetchMock },
     );
@@ -261,9 +261,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),
@@ -281,9 +281,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),
@@ -303,15 +303,15 @@ describe('generate', () => {
       {
         tenant: 'tenant_123',
         feature: 'contract-review',
-        prompt_version: 'v2',
+        promptVersion: 'v2',
         input: { contract: '...' },
         complexity: 'high',
-        output_schema: outputSchema,
+        outputSchema: outputSchema,
       },
       { fetch: fetchMock },
     );
 
-    expect(result.metadata.model_tier).toBe('opus');
+    expect(result.metadata.modelTier).toBe('opus');
     expect(result.metadata.downgraded).toBe(false);
     expect(requestBodyAt(fetchMock, 0).model).toBe('anthropic/claude-opus-4-7');
   });
@@ -326,9 +326,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),
@@ -352,9 +352,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),
@@ -384,9 +384,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),
@@ -410,9 +410,9 @@ describe('generate', () => {
         {
           tenant: 'tenant_123',
           feature: 'vendor-risk-summary',
-          prompt_version: 'v1',
+          promptVersion: 'v1',
           input: { vendor: 'Acme' },
-          output_schema: outputSchema,
+          outputSchema: outputSchema,
         },
         { fetch: fetchMock },
       ),

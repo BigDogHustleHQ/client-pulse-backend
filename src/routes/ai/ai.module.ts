@@ -21,10 +21,10 @@ export class AiController {
     const result = await generate({
       tenant: body.tenant,
       feature: body.feature,
-      prompt_version: body.prompt_version,
+      promptVersion: body.promptVersion,
       input: body.input,
       complexity: body.complexity,
-      output_schema: routeOutputSchema,
+      outputSchema: routeOutputSchema,
     });
 
     response?.setHeader('x-ai-route', result.metadata.provider);

@@ -6,7 +6,7 @@ jest.mock('../../packages/ai', () => ({
     output: { summary: 'ok' },
     metadata: {
       model: 'anthropic/claude-sonnet-4-6',
-      model_tier: 'sonnet',
+      modelTier: 'sonnet',
       provider: 'litellm',
     },
   })),
@@ -24,20 +24,20 @@ describe('AiController', () => {
       controller.generate({
         tenant: 'tenant_123',
         feature: 'known-prompt',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { topic: 'test' },
         complexity: 'medium',
       }),
     ).resolves.toMatchObject({
       output: { summary: 'ok' },
-      metadata: { model_tier: 'sonnet' },
+      metadata: { modelTier: 'sonnet' },
     });
 
     expect(generate).toHaveBeenCalledWith(
       expect.objectContaining({
         tenant: 'tenant_123',
         feature: 'known-prompt',
-        prompt_version: 'v1',
+        promptVersion: 'v1',
         input: { topic: 'test' },
         complexity: 'medium',
       }),
