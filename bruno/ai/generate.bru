@@ -1,0 +1,46 @@
+meta {
+  name: Generate
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/ai/generate
+  body: json
+  auth: bearer
+}
+
+headers {
+  content-type: application/json
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "tenant": "tenant_demo",
+    "feature": "known-prompt",
+    "prompt_version": "v1",
+    "complexity": "medium",
+    "input": {
+      "topic": "ClientPulse AI wrapper smoke test"
+    }
+  }
+}
+
+tests {
+  test("response shape includes output and metadata", function () {
+    expect(res.body).to.have.property("output");
+    expect(res.body).to.have.property("metadata");
+    expect(res.body.metadata).to.have.property("provider", "litellm");
+    expect(res.body.metadata).to.have.property("model");
+  });
+
+  test("model used is stamped in headers or body metadata", function () {
+    const modelHeader = res.headers["x-ai-model"] || res.headers["X-Ai-Model"];
+    expect(modelHeader || res.body.metadata.model).to.exist;
+  });
+}
+
