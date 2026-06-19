@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { AuthModule } from '../../lib/auth/auth.module';
 import { ClerkAuthGuard } from '../../lib/auth/clerk-auth.guard';
 import { generate } from '../../packages/ai';
-import { AiGenerateDto } from './dto';
+import { AiGenerateRequestDto, AiGenerateResponseDto } from './dto';
 
 const routeOutputSchema = z.record(z.string(), z.unknown());
 
@@ -15,9 +15,9 @@ export class AiController {
   // packages/ai and pass their own concrete zod schema for typed outputs.
   @Post('generate')
   async generate(
-    @Body() body: AiGenerateDto,
+    @Body() body: AiGenerateRequestDto,
     @Res({ passthrough: true }) response?: Response,
-  ): Promise<unknown> {
+  ): Promise<AiGenerateResponseDto> {
     const result = await generate({
       tenant: body.tenant,
       feature: body.feature,
@@ -29,7 +29,10 @@ export class AiController {
 
     response?.setHeader('x-ai-route', result.metadata.provider);
     response?.setHeader('x-ai-model', result.metadata.model);
-    return result;
+    return {
+      output: result.output,
+      metadata: result.metadata,
+    };
   }
 }
 
